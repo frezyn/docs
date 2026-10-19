@@ -1,0 +1,99 @@
+---
+title: "Generate a PIX Payment Charge via noob-exchange API"
+sidebarTitle: "Create Payment"
+description: "Learn how to use POST /v1/payments to create a PIX QR code for a yuan-denominated charge, present it to payers, and monitor settlement."
+---
+
+`POST /v1/payments` generates a PIX QR code for a yuan-denominated charge. The payer scans the code and pays in BRL; you receive the yuan equivalent credited to your balance when payment is confirmed.
+
+<Steps>
+  <Step title="Verify Prerequisites">
+    Before creating a payment, make sure your account meets the following requirements:
+
+    - Your account is **verified** (KYC complete).
+    - The **developer flag** is enabled on your account.
+    - You have a valid API key starting with `nox_`.
+
+    You can generate and manage API keys from your noob-exchange dashboard.
+  </Step>
+
+  <Step title="Check the Current Quote">
+    This step is optional but recommended. Fetching the current BRL/yuan quote lets you display an accurate BRL amount to your payer before presenting the QR code.
+
+    ```bash
+    curl https://api.noobexchange.example.com/v1/quote \
+      -H "Authorization: Bearer nox_your_api_key"
+    ```
+
+    The response returns a `quote` value representing how many BRL equal one yuan. Use this to estimate the BRL charge:
+
+    ```
+    amount_real = yuan_value / quote
+    ```
+
+    For example, 100 yuan at a quote of 1.2 costs the payer **83.33 BRL**.
+  </Step>
+
+  <Step title="Create the Payment">
+    Send a `POST` request with the yuan `value` you want to charge. The API returns a ready-to-use PIX QR code along with payment metadata.
+
+    ```bash
+    curl -X POST https://api.noobexchange.example.com/v1/payments \
+      -H "Authorization: Bearer nox_your_api_key" \
+      -H "Content-Type: application/json" \
+      -d '{"value": 100}'
+    ```
+
+    **Response**
+
+    ```json
+    {
+      "qrcode": "iVBORw0KGgo...",
+      "pix_key": "00020126...",
+      "payment_id": "3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a",
+      "yuan_value": 100,
+      "amount_real": 83.33,
+      "quote": 1.2,
+      "expires_at": "2026-09-24T23:10:00Z",
+      "status_url": "/v1/payments/3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a"
+    }
+    ```
+
+    | Field | Description |
+    |---|---|
+    | `qrcode` | Base64-encoded PNG of the PIX QR code. |
+    | `pix_key` | Raw PIX copy-paste code (EMV format). |
+    | `payment_id` | Unique identifier for this payment. |
+    | `yuan_value` | The yuan amount you will receive upon confirmation. |
+    | `amount_real` | The exact BRL amount the payer must send. |
+    | `quote` | BRL/yuan exchange rate locked at creation time. |
+    | `expires_at` | ISO 8601 timestamp when the charge expires. |
+    | `status_url` | Path to poll for status updates on this payment. |
+  </Step>
+
+  <Step title="Present the QR Code or Copy-Paste Code">
+    You have two options for presenting the payment to the payer:
+
+    - **QR code image** — Decode the `qrcode` field from base64 and render it as a PNG image in your UI. Most banking apps can scan it directly.
+    - **Copy-paste PIX code** — Display the `pix_key` string so the payer can paste it into their banking app's "PIX copy-paste" field.
+
+    Most implementations offer both options side by side.
+  </Step>
+
+  <Step title="Monitor for Payment">
+    After presenting the charge, track its status until it is confirmed or expires. You have two options:
+
+    - **Webhooks (recommended)** — noob-exchange posts a notification to your configured endpoint as soon as the payment is confirmed.
+    - **Polling** — Call `GET /v1/payments/{id}` at a regular interval to check the current status.
+
+    See [Check Payment Status](/guides/check-payment-status) for full details on both approaches.
+  </Step>
+</Steps>
+
+<Note>
+  The accepted charge range is **1 to 10,000 yuan** per payment. Requests outside this range will be rejected with a `422` error.
+</Note>
+
+<Warning>
+  PIX charges expire in **10 minutes**. After `expires_at`, the QR code and `pix_key` are no longer valid and the payment moves to `expired` status. Create a new payment if the payer needs more time.
+</Warning>

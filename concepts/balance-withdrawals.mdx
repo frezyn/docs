@@ -1,0 +1,73 @@
+---
+title: "Managing Your Yuan Balance and PIX Withdrawals API"
+sidebarTitle: "Balance & Withdrawals"
+description: "Learn how yuan balance accumulates from confirmed PIX charges, how to request a withdrawal to a PIX key, and the limits that apply per API key."
+---
+
+Your yuan balance grows automatically each time a PIX charge you created is confirmed as paid. When you're ready to convert that balance back to BRL, call `POST /v1/withdrawals` with the amount and a destination PIX key — noob-exchange handles the conversion and pushes the funds to the recipient.
+
+## How Balance Accumulates
+
+Every confirmed payment adds its `yuan_value` to your account balance. To check your current balance at any time:
+
+```
+GET /v1/balance
+```
+
+Response:
+
+```json
+{
+  "yuan_balance": 342.50
+}
+```
+
+Only charges with status `paid` contribute to your balance. `expired` and `cancelled` charges have no effect.
+
+## Requesting a Withdrawal
+
+Specify the amount you want to withdraw (`yuan_value`) and the destination PIX key (`pix_key`). The yuan is **reserved immediately** and the BRL equivalent is calculated using the quote active at the moment of the request — that quote is then frozen for the withdrawal.
+
+**Request body:**
+
+```json
+{
+  "yuan_value": 50,
+  "pix_key": "user@example.com"
+}
+```
+
+**Response:**
+
+```json
+{
+  "id": "wd_01J3K8MPQR4XYZABCDEF",
+  "yuan_value": 50,
+  "value_real": 41.67,
+  "quote": 1.2,
+  "pix_key": "user@example.com",
+  "status": "pending"
+}
+```
+
+Use `GET /v1/withdrawals` to list your 50 most recent withdrawal requests and track their progress.
+
+## Withdrawal Statuses
+
+| Status | Meaning |
+|---|---|
+| `pending` | Withdrawal received; awaiting processing by the administrator. |
+| `paid` | BRL has been sent to the specified PIX key. |
+| `rejected` | Withdrawal was rejected by the administrator; the reserved yuan has been returned to your balance. |
+
+## Withdrawal Limits
+
+| Parameter | Value |
+|---|---|
+| Minimum per request | 1 yuan |
+| Maximum per request | 100,000 yuan |
+| Rate limit | 10 withdrawals per hour per API key |
+
+<Warning>
+  Your yuan balance is reserved the moment a withdrawal request is submitted — it will not be available for new withdrawals while the request is `pending`. If the administrator rejects the withdrawal, the reserved yuan is automatically returned to your balance in full.
+</Warning>

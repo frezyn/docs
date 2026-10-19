@@ -1,0 +1,121 @@
+---
+title: "noob-exchange Quickstart: First Payment to Withdrawal"
+sidebarTitle: "Quickstart"
+description: "Create your first PIX payment, track its status, and withdraw your yuan balance to a PIX key using the noob-exchange API in minutes."
+---
+
+This quickstart walks through the complete payment cycle using the noob-exchange API: fetching the current exchange quote, generating a PIX charge, confirming the payment, and withdrawing your yuan balance to a PIX key. Each step builds on the last — follow them in order.
+
+<Steps>
+  <Step title="Get Your API Key">
+    Every request requires a valid `nox_...` API key passed as a Bearer token. If you have not created one yet, see the [Authentication](/authentication) page for step-by-step instructions.
+
+    Set your key as an environment variable so you can reuse it across all examples below:
+
+    ```bash
+    export NOX_KEY="nox_your_key_here"
+    ```
+  </Step>
+
+  <Step title="Check the Current Quote">
+    Before creating a payment, fetch the live BRL-to-yuan exchange rate. The quote returned here is the same rate that will be locked in when you create a charge.
+
+    ```bash
+    curl https://api.noobexchange.example.com/v1/quote \
+      -H "Authorization: Bearer $NOX_KEY"
+    ```
+
+    **Response:**
+
+    ```json
+    {
+      "quote": 1.2
+    }
+    ```
+
+    In this example, every 1 BRL converts to 1.2 yuan.
+  </Step>
+
+  <Step title="Create a Payment">
+    Post a new PIX charge by specifying the amount in yuan. noob-exchange locks in the current quote, generates a QR code and PIX key for the payer, and returns the expected yuan credit.
+
+    ```bash
+    curl -X POST https://api.noobexchange.example.com/v1/payments \
+      -H "Authorization: Bearer $NOX_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"value": 100}'
+    ```
+
+    **Response:**
+
+    ```json
+    {
+      "payment_id": "pay_a1b2c3d4e5",
+      "qrcode": "00020126...",
+      "pix_key": "pix@noobexchange.example.com",
+      "amount_real": 100.00,
+      "yuan_value": 120.00,
+      "quote": 1.2,
+      "status": "pending",
+      "expires_at": "2024-08-01T15:10:00Z"
+    }
+    ```
+
+    Hand `qrcode` or `pix_key` to the payer. Once they complete the transfer, the payment status updates automatically.
+
+    <Tip>
+      The charge expires in 10 minutes. Ensure the payer completes the payment within that window — after `expires_at`, the charge can no longer be settled and a new one must be created.
+    </Tip>
+  </Step>
+
+  <Step title="Check Payment Status">
+    Poll the payment endpoint with the `payment_id` to confirm the payer has completed the transfer.
+
+    ```bash
+    curl https://api.noobexchange.example.com/v1/payments/pay_a1b2c3d4e5 \
+      -H "Authorization: Bearer $NOX_KEY"
+    ```
+
+    **Response:**
+
+    ```json
+    {
+      "payment_id": "pay_a1b2c3d4e5",
+      "status": "paid",
+      "amount_real": 100.00,
+      "yuan_value": 120.00,
+      "quote": 1.2,
+      "paid_at": "2024-08-01T15:07:43Z"
+    }
+    ```
+
+    When `status` is `paid`, the corresponding `yuan_value` has been credited to your balance and is available for withdrawal. Other possible statuses are `pending`, `cancelled`, and `expired`.
+  </Step>
+
+  <Step title="Withdraw Your Balance">
+    Withdraw yuan from your balance to any valid PIX key. Specify the amount in yuan and the destination PIX key (CPF, CNPJ, phone, email, or random key).
+
+    ```bash
+    curl -X POST https://api.noobexchange.example.com/v1/withdrawals \
+      -H "Authorization: Bearer $NOX_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"yuan_value": 50, "pix_key": "user@example.com"}'
+    ```
+
+    **Response:**
+
+    ```json
+    {
+      "withdrawal_id": "wth_z9y8x7w6v5",
+      "pix_key": "user@example.com",
+      "yuan_value": 50.00,
+      "amount_real": 41.67,
+      "quote": 1.2,
+      "status": "pending",
+      "created_at": "2024-08-01T15:12:00Z"
+    }
+    ```
+
+    The withdrawal is queued for processing. The BRL equivalent is calculated using the quote active at the time of the withdrawal request. Possible statuses are `pending`, `paid`, and `rejected`.
+  </Step>
+</Steps>

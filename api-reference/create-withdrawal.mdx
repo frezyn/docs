@@ -1,0 +1,83 @@
+---
+title: "POST /v1/withdrawals — Convert Yuan to BRL via PIX"
+sidebarTitle: "POST /v1/withdrawals"
+description: "POST /v1/withdrawals converts yuan balance to BRL at the current quote and sends it to your PIX key. Balance is reserved immediately."
+---
+
+`POST /v1/withdrawals` requests a withdrawal of your yuan balance, converted to BRL at the current exchange rate and sent to the PIX key you provide. The yuan amount is reserved immediately upon request and released back to your balance only if the withdrawal is rejected.
+
+<Warning>
+  Yuan is debited from your balance immediately on request — before the transfer is processed. If the withdrawal is rejected, the reserved amount is returned to your available balance.
+</Warning>
+
+## Request
+
+```bash
+curl -X POST https://api.noobexchange.example.com/v1/withdrawals \
+  -H "Authorization: Bearer nox_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"yuan_value": 50, "pix_key": "user@example.com"}'
+```
+
+**Body parameters**
+
+<ParamField body="yuan_value" type="number" required>
+  Amount in yuan to withdraw. Must be between `1` and `100,000` (inclusive) and cannot exceed your current available balance.
+</ParamField>
+
+<ParamField body="pix_key" type="string" required>
+  PIX key that will receive the BRL transfer. Accepts any PIX key type (CPF, CNPJ, phone, email, or random key). Between 5 and 200 characters.
+</ParamField>
+
+## Response (201 Created)
+
+<ResponseField name="id" type="string (uuid)">
+  Unique identifier for this withdrawal request. Use it to track status in `GET /v1/withdrawals`.
+</ResponseField>
+
+<ResponseField name="yuan_value" type="number">
+  Yuan amount reserved and to be converted.
+</ResponseField>
+
+<ResponseField name="value_real" type="number">
+  BRL amount that will be sent to your PIX key, calculated from `yuan_value` and the frozen `quote`.
+</ResponseField>
+
+<ResponseField name="quote" type="number">
+  Exchange rate (yuan per BRL) frozen at the moment this withdrawal was requested.
+</ResponseField>
+
+<ResponseField name="pix_key" type="string">
+  PIX key provided in the request body.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current withdrawal status. One of:
+  - `pending` — awaiting processing
+  - `paid` — BRL transfer completed
+  - `rejected` — request rejected; balance returned
+</ResponseField>
+
+**Example response**
+
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "yuan_value": 50,
+  "value_real": 41.67,
+  "quote": 1.2,
+  "pix_key": "user@example.com",
+  "status": "pending"
+}
+```
+
+## Errors
+
+| HTTP Status | Error Code | Description |
+|-------------|------------|-------------|
+| `400` | `invalid_value` | `yuan_value` or `pix_key` is missing, the wrong type, or out of range. |
+| `401` | `unauthorized` | Missing or invalid Bearer token. |
+| `403` | `developer_required` | Your account does not have developer access enabled. |
+| `422` | `insufficient_balance` | Your available yuan balance is less than `yuan_value`. |
+| `429` | `rate_limited` | Too many withdrawal requests. Back off and retry after the `Retry-After` interval. |
+| `503` | `maintenance` | The API is temporarily unavailable for scheduled maintenance. |

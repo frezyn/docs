@@ -1,0 +1,72 @@
+{
+  "projectType": "api-service",
+  "projectName": "noob-exchange",
+  "projectDescription": "A currency exchange API that lets developers receive yuan via PIX payments and withdraw the balance to any PIX key.",
+  "theme": "luma",
+  "primaryColor": "#000000",
+  "lightColor": "#ffffff",
+  "darkColor": "#111111",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "authentication", "quickstart"]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": ["concepts/payment-flow", "concepts/balance-withdrawals", "concepts/rate-limits"]
+          },
+          {
+            "group": "Guides",
+            "pages": ["guides/create-payment", "guides/check-payment-status", "guides/withdraw-funds"]
+          },
+          {
+            "group": "Help",
+            "pages": ["errors", "faq"]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["api-reference/overview"]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api-reference/get-quote",
+              "api-reference/create-payment",
+              "api-reference/get-payment",
+              "api-reference/get-balance",
+              "api-reference/create-withdrawal",
+              "api-reference/list-withdrawals"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "PIX-based payment creation — generate QR codes and copy-paste codes for yuan-denominated charges",
+    "Real-time yuan/BRL exchange quote",
+    "Automatic balance crediting upon payment confirmation",
+    "Webhook-driven settlement with polling fallback",
+    "Withdrawal requests processed to any PIX key",
+    "Per-key rate limiting with Retry-After headers",
+    "API key authentication (nox_... format)"
+  ],
+  "publicApiSurface": [
+    "GET /health",
+    "GET /v1/quote",
+    "POST /v1/payments",
+    "GET /v1/payments/{id}",
+    "GET /v1/balance",
+    "POST /v1/withdrawals",
+    "GET /v1/withdrawals"
+  ]
+}

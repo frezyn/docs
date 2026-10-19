@@ -1,0 +1,64 @@
+---
+title: "noob-exchange FAQ: API Integration Questions Answered"
+sidebarTitle: "FAQ"
+description: "Answers to common questions about API keys, payment flows, exchange rates, withdrawals, and account requirements on noob-exchange."
+---
+
+Common questions about using the noob-exchange API — covering API keys, payment flows, exchange rates, withdrawals, and account requirements.
+
+<AccordionGroup>
+  <Accordion title="How do I get a developer API key?">
+    Go to `/settings/api-keys` on the dashboard. Keys are shown only once — store them securely immediately after creation. Note that an administrator must enable the developer flag on your account before you can generate or use API keys.
+  </Accordion>
+
+  <Accordion title="Why am I getting 403 developer_required?">
+    The developer flag has not been enabled on your account. Contact your administrator and ask them to enable developer access. Once enabled, your existing API keys will work without any changes.
+  </Accordion>
+
+  <Accordion title="How is the BRL amount calculated?">
+    BRL is derived from the yuan value and the exchange rate quote at the time of payment creation:
+
+    ```
+    BRL = yuan_value / quote
+    ```
+
+    For example, 100 yuan at a quote of 1.2 equals 83.33 BRL. The quote is **frozen at payment creation time** — fluctuations after that point do not affect the charge.
+  </Accordion>
+
+  <Accordion title="What happens if the PIX payment is not completed in time?">
+    The PIX charge expires after **10 minutes**. If payment is not received within that window, the payment status transitions to `expired` and no yuan is credited to your balance. You will need to create a new payment to try again.
+  </Accordion>
+
+  <Accordion title="When does my yuan balance update?">
+    Your balance is credited when a payment is confirmed. Confirmation is triggered in one of two ways: receiving a webhook event for the payment, or polling `GET /v1/payments/{id}` — which also triggers settlement when the payment is found to be complete.
+  </Accordion>
+
+  <Accordion title="How long do withdrawals take?">
+    Withdrawals are processed by noob-exchange. The status moves from `pending` to `paid` once the BRL transfer is sent. If the withdrawal is declined, the status becomes `rejected` and the yuan amount is automatically returned to your balance.
+  </Accordion>
+
+  <Accordion title="Can I use multiple API keys?">
+    Yes. Rate limits are enforced **per API key**, so distributing requests across multiple keys allows you to scale your throughput proportionally. You can create and manage all your keys from `/settings/api-keys` on the dashboard.
+  </Accordion>
+
+  <Accordion title="What is the maximum payment value?">
+    - **Payments:** 1 to 10,000 yuan per payment request.
+    - **Withdrawals:** 1 to 100,000 yuan per withdrawal request.
+
+    Requests outside these ranges will return a `400` status with the `invalid_value` error code.
+  </Accordion>
+
+  <Accordion title="What PIX key formats are accepted?">
+    Any valid PIX key format is accepted: CPF, CNPJ, phone number, email address, or random key. The key must be between **5 and 200 characters** in length. Requests with keys outside that range will be rejected with a `400` status.
+  </Accordion>
+
+  <Accordion title="How do I check if the API is operational?">
+    Call `GET /health` — no authentication is required. A healthy API returns:
+
+    ```json
+    { "status": "ok" }
+    ```
+
+    If the service is in maintenance mode, the endpoint returns `503` with the `maintenance` error code.
+  </Accordion>
+</AccordionGroup>

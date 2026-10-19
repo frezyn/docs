@@ -1,0 +1,44 @@
+---
+title: "noob-exchange API — PIX to Yuan Payment Platform"
+sidebarTitle: "Introduction"
+description: "noob-exchange lets developers accept PIX payments in BRL and receive yuan. Create charges, track status, and withdraw funds via any PIX key."
+---
+
+noob-exchange is a developer API that bridges Brazilian PIX payments and yuan balance management. You create PIX charges programmatically, payers settle them in BRL, and your account is credited with the equivalent amount in yuan at the current exchange rate. That yuan balance can then be withdrawn to any valid PIX key at any time.
+
+## Key Concepts
+
+**PIX payments** — Instant Brazilian payment transactions initiated via a QR code or PIX key. noob-exchange generates these charges on your behalf and monitors their status in real time.
+
+**Yuan balance** — Every confirmed BRL payment is converted to yuan using the active exchange quote and credited to your account balance. Your balance accumulates across payments and is always denominated in yuan.
+
+**Exchange quote** — The BRL-to-yuan rate applied at the moment a payment is created. The quote is locked in for that charge and does not fluctuate after creation.
+
+**Withdrawals** — A request to convert a portion of your yuan balance back to BRL and deliver it to a PIX key. Withdrawals can target any valid CPF, CNPJ, phone, email, or random PIX key.
+
+## Requirements
+
+- A verified noob-exchange account
+- Developer flag enabled by an administrator
+- A valid `nox_...` API key generated from your dashboard
+
+## Base URL
+
+All API requests must be directed to the production base URL:
+
+```text
+https://api.noobexchange.example.com
+```
+
+<Note>
+  The developer flag is not enabled by default. An administrator must explicitly activate it on your account before any API request will succeed. Without it, every request returns `403 developer_required`.
+</Note>
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="authentication">
+    Learn how to create and use your API key.
+  </Card>
+  <Card title="Quickstart" icon="bolt" href="quickstart">
+    Create your first payment and withdraw your balance in minutes.
+  </Card>
+</CardGroup>

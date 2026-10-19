@@ -1,0 +1,47 @@
+---
+title: "noob-exchange PIX Payment Flow: A BRL to Yuan Guide"
+sidebarTitle: "Payment Flow"
+description: "Learn how noob-exchange converts PIX payments in BRL into yuan balance: from charge creation and QR code to settlement, credit, and expiry."
+---
+
+When you create a PIX charge via noob-exchange, the API locks in an exchange quote, generates a QR code denominated in BRL, and waits for the payer to settle. Once the PIX payment clears, the equivalent yuan amount is credited to your balance automatically — no manual reconciliation required.
+
+## Payment Lifecycle
+
+1. **Create a charge** — call `POST /v1/payments` with the `yuan_value` you want to receive. The API calculates the BRL equivalent at the current quote and returns a QR code (`qrcode`, base64 PNG), a copy-paste EMV string (`pix_key`), and metadata including `payment_id`, `yuan_value`, `amount_real`, `quote`, `expires_at`, and a `status_url`.
+2. **Payer settles** — the payer scans the QR code or pastes the EMV string into their banking app and pays the BRL amount. The charge must be paid within **10 minutes** of creation.
+3. **Confirmation & credit** — once the PIX network confirms the payment, noob-exchange fires a webhook to your registered endpoint and credits the `yuan_value` to your balance.
+4. **Polling fallback** — if your webhook is delayed or missed, call `GET /v1/payments/{id}` to trigger a recheck. The response always reflects the latest status.
+
+## Payment Statuses
+
+| Status | Meaning |
+|---|---|
+| `pending` | Charge created; awaiting payment from the payer. |
+| `paid` | PIX payment confirmed; yuan has been credited to your balance. |
+| `cancelled` | Charge was cancelled before payment was received. |
+| `expired` | The 10-minute window elapsed without payment; no yuan is credited. |
+
+## The Exchange Quote
+
+The BRL amount owed by the payer is derived from the quote active at the moment the charge is created:
+
+```
+amount_real = yuan_value / quote
+```
+
+For example, if you request **100 yuan** and the current quote is **1.2 yuan per BRL**:
+
+```
+100 ÷ 1.2 = 83.33 BRL
+```
+
+The quote is **frozen** at creation time, so exchange-rate movements after the charge is issued do not affect the amount the payer owes or the yuan you receive.
+
+## Charge Expiry
+
+Charges expire exactly **10 minutes** after creation. If the payer does not settle within that window, the charge transitions to `expired` and no yuan is credited to your balance. You will need to create a new charge if the payer still wants to complete the transaction.
+
+<Note>
+  Webhooks are the fastest path to settlement — yuan is credited the moment the PIX confirmation arrives. `GET /v1/payments/{id}` is a reliable fallback: while the status is `pending`, each call triggers an active recheck against the PIX network rather than just returning cached data.
+</Note>

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "noob-exchange",
+  "theme": "luma",
+  "colors": {
+    "primary": "#000000",
+    "light": "#ffffff",
+    "dark": "#111111"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "authentication", "quickstart"]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/payment-flow",
+              "concepts/balance-withdrawals",
+              "concepts/rate-limits"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/create-payment",
+              "guides/check-payment-status",
+              "guides/withdraw-funds"
+            ]
+          },
+          {
+            "group": "Help",
+            "pages": ["errors", "faq"]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["api-reference/overview"]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api-reference/get-quote",
+              "api-reference/create-payment",
+              "api-reference/get-payment",
+              "api-reference/get-balance",
+              "api-reference/create-withdrawal",
+              "api-reference/list-withdrawals"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

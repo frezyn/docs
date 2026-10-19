@@ -1,0 +1,60 @@
+---
+title: "API Key Authentication for noob-exchange API Requests"
+sidebarTitle: "Authentication"
+description: "noob-exchange authenticates every request with a Bearer API key. Learn how to generate your nox_ key and attach it to every API call."
+---
+
+noob-exchange authenticates every request using an API key passed as a Bearer token in the `Authorization` header. There are no sessions, cookies, or OAuth flows — every call must carry a valid key.
+
+## Getting Your API Key
+
+1. Go to `/settings/api-keys` on the noob-exchange dashboard.
+2. Click **Create new key**, give it a name, and confirm.
+3. Copy the key immediately — it is displayed only once.
+
+<Warning>
+  Your API key is shown a single time at creation. If you lose it, you must revoke it and generate a new one. Store it in a secrets manager or environment variable — never commit it to source control.
+</Warning>
+
+All API keys follow the format:
+
+```text
+nox_...
+```
+
+## Sending Your API Key
+
+Include your key in the `Authorization` header on every request:
+
+```http
+Authorization: Bearer nox_your_key_here
+```
+
+**Example — fetch your current yuan balance:**
+
+```bash
+curl https://api.noobexchange.example.com/v1/balance \
+  -H "Authorization: Bearer nox_your_key_here"
+```
+
+## Developer Flag
+
+The developer flag gates access to the entire API. It is disabled by default and must be turned on by an administrator for your account. Until it is enabled, every request — regardless of key validity — returns:
+
+```json
+{
+  "error": "developer_required"
+}
+```
+
+<Note>
+  Contact your noob-exchange administrator to request developer access. Provide your account email so they can enable the flag on your account.
+</Note>
+
+## Authentication Errors
+
+| Error code | HTTP status | Cause |
+|---|---|---|
+| `unauthorized` | `401` | API key is missing, malformed, or has been revoked. |
+| `developer_required` | `403` | The developer flag has not been enabled on your account. |
+| `account_not_verified` | `403` | Your account has not completed the verification process. |

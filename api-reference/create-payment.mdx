@@ -1,0 +1,83 @@
+---
+title: "POST /v1/payments — Create a PIX Payment & QR Code"
+sidebarTitle: "POST /v1/payments"
+description: "POST /v1/payments creates a PIX charge. Returns a QR code and copy-paste code. The payer pays in BRL; you receive yuan when confirmed."
+---
+
+`POST /v1/payments` creates a PIX charge for the yuan amount you specify. The payer pays the BRL equivalent at the current exchange rate; you receive the yuan amount in your balance upon confirmation. The charge expires 10 minutes after creation.
+
+## Request
+
+```bash
+curl -X POST https://api.noobexchange.example.com/v1/payments \
+  -H "Authorization: Bearer nox_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"value": 100}'
+```
+
+**Body parameters**
+
+<ParamField body="value" type="number" required>
+  Amount in yuan you want to receive. Must be between `1` and `10,000` (inclusive).
+</ParamField>
+
+## Response (201 Created)
+
+<ResponseField name="qrcode" type="string">
+  PIX QR code image encoded as a base64 PNG. Display this to the payer so they can scan it with any PIX-enabled banking app.
+</ResponseField>
+
+<ResponseField name="pix_key" type="string">
+  Full EMV copy-and-paste PIX code. Use this as a fallback for payers who cannot scan the QR code.
+</ResponseField>
+
+<ResponseField name="payment_id" type="string (uuid)">
+  Unique identifier for this payment. Pass it to `GET /v1/payments/{id}` to poll for status.
+</ResponseField>
+
+<ResponseField name="yuan_value" type="number">
+  Yuan amount you will receive once the payment is confirmed.
+</ResponseField>
+
+<ResponseField name="amount_real" type="number">
+  BRL amount the payer must send, calculated from `yuan_value` and the current `quote`.
+</ResponseField>
+
+<ResponseField name="quote" type="number">
+  Exchange rate (yuan per BRL) frozen at the moment this charge was created.
+</ResponseField>
+
+<ResponseField name="expires_at" type="string (datetime)">
+  ISO 8601 timestamp indicating when the charge expires — 10 minutes after creation. Charges not paid before this time move to `expired` status.
+</ResponseField>
+
+<ResponseField name="status_url" type="string">
+  Relative URL you can use to check payment status, e.g. `/v1/payments/3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a`.
+</ResponseField>
+
+**Example response**
+
+```json
+{
+  "qrcode": "iVBORw0KGgoAAAANSUhEUgAA...",
+  "pix_key": "00020126580014br.gov.bcb.pix...",
+  "payment_id": "3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a",
+  "yuan_value": 100,
+  "amount_real": 83.33,
+  "quote": 1.2,
+  "expires_at": "2024-06-01T15:10:00Z",
+  "status_url": "/v1/payments/3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a"
+}
+```
+
+## Errors
+
+| HTTP Status | Error Code | Description |
+|-------------|------------|-------------|
+| `400` | `invalid_value` | `value` is missing, not a number, or outside the 1–10,000 range. |
+| `401` | `unauthorized` | Missing or invalid Bearer token. |
+| `403` | `developer_required` | Your account does not have developer access enabled. |
+| `403` | `account_not_verified` | Your account has not completed identity verification. |
+| `429` | `rate_limited` | Too many payment creation requests. Back off and retry after the `Retry-After` interval. |
+| `502` | `payment_provider_error` | The downstream PIX provider returned an error. |
+| `503` | `maintenance` | The API is temporarily unavailable for scheduled maintenance. |

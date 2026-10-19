@@ -1,0 +1,62 @@
+---
+title: "noob-exchange API Reference — Base URL & Endpoints"
+sidebarTitle: "Overview"
+description: "Complete reference for the noob-exchange REST API: base URL, Bearer token auth, request format, error envelope, and all seven public endpoints."
+---
+
+The noob-exchange REST API lets you programmatically create PIX payments, check exchange rates, manage your yuan balance, and request withdrawals. All communication happens over HTTPS and returns JSON.
+
+## Base URL
+
+```
+https://api.noobexchange.example.com
+```
+
+All endpoint paths are relative to this base URL.
+
+## Authentication
+
+All endpoints — except `GET /health` — require a Bearer token in the `Authorization` header.
+
+```http
+Authorization: Bearer nox_your_key_here
+```
+
+API keys follow the format `nox_...`. You can generate and revoke keys in your account dashboard. See the [Authentication](/authentication) page for full details.
+
+## Request Format
+
+For `POST` endpoints, send a JSON body and include the appropriate content type header:
+
+```http
+Content-Type: application/json
+```
+
+Query parameters are used where noted (e.g., filters on list endpoints).
+
+## Response Format
+
+All responses — including errors — are JSON. Successful responses return the documented fields directly. Errors follow a consistent envelope:
+
+```json
+{
+  "error": {
+    "code": "...",
+    "message": "..."
+  }
+}
+```
+
+HTTP status codes reflect the outcome: `2xx` for success, `4xx` for client errors, and `5xx` for server-side failures. See the [Errors](/errors) page for the full list of error codes.
+
+## Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Health check (no auth) |
+| `GET` | `/v1/quote` | Current yuan/BRL quote |
+| `POST` | `/v1/payments` | Create PIX payment |
+| `GET` | `/v1/payments/{id}` | Payment status |
+| `GET` | `/v1/balance` | Yuan balance |
+| `POST` | `/v1/withdrawals` | Request withdrawal |
+| `GET` | `/v1/withdrawals` | List withdrawals |

@@ -1,0 +1,77 @@
+---
+title: "GET /v1/payments/{id} — Retrieve PIX Payment by ID"
+sidebarTitle: "GET /v1/payments/{id}"
+description: "GET /v1/payments/{id} returns the current status of a PIX payment, including paid, pending, expired, or cancelled, plus BRL and yuan amounts."
+---
+
+`GET /v1/payments/{id}` returns the current status and details of a specific payment. Poll this endpoint to check whether the payer has completed their PIX transfer and your yuan balance has been credited.
+
+## Request
+
+**Path parameter**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string (uuid) | The `payment_id` returned by `POST /v1/payments`. |
+
+```bash
+curl https://api.noobexchange.example.com/v1/payments/3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a \
+  -H "Authorization: Bearer nox_your_key_here"
+```
+
+## Response (200 OK)
+
+<ResponseField name="payment_id" type="string (uuid)">
+  Unique identifier for this payment, matching the `id` path parameter.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current payment status. One of:
+  - `pending` — awaiting payer confirmation
+  - `paid` — confirmed and yuan credited to your balance
+  - `cancelled` — cancelled before expiry
+  - `expired` — charge was not paid within 10 minutes
+</ResponseField>
+
+<ResponseField name="yuan_value" type="number">
+  Yuan amount to be (or already) credited to your balance.
+</ResponseField>
+
+<ResponseField name="amount_real" type="number">
+  BRL amount the payer was charged.
+</ResponseField>
+
+<ResponseField name="quote" type="number">
+  Exchange rate frozen at creation time.
+</ResponseField>
+
+<ResponseField name="paid_at" type="string (datetime)">
+  ISO 8601 timestamp of when the payment was confirmed. Only present when `status` is `paid`.
+</ResponseField>
+
+<ResponseField name="expires_at" type="string (datetime)">
+  ISO 8601 timestamp of when the charge expires or expired. Present for `pending` and `expired` payments.
+</ResponseField>
+
+**Example response**
+
+```json
+{
+  "payment_id": "3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a",
+  "status": "paid",
+  "yuan_value": 100,
+  "amount_real": 83.33,
+  "quote": 1.2,
+  "paid_at": "2024-06-01T15:07:42Z",
+  "expires_at": "2024-06-01T15:10:00Z"
+}
+```
+
+## Errors
+
+| HTTP Status | Error Code | Description |
+|-------------|------------|-------------|
+| `400` | `invalid_id` | The provided `id` is not a valid UUID. |
+| `401` | `unauthorized` | Missing or invalid Bearer token. |
+| `403` | `developer_required` | Your account does not have developer access enabled. |
+| `404` | `not_found` | No payment with the given `id` exists for your account. |

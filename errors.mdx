@@ -1,0 +1,49 @@
+---
+title: "noob-exchange API Error Codes and HTTP Status Reference"
+sidebarTitle: "Errors"
+description: "Complete reference for noob-exchange API error codes and HTTP statuses. Learn what each code means and how to handle every error in your integration."
+---
+
+noob-exchange returns structured JSON errors on every non-2xx response. Each error has a machine-readable `code` and a human-readable `message`.
+
+```json
+{
+  "error": {
+    "code": "error_code",
+    "message": "Human-readable description."
+  }
+}
+```
+
+## HTTP Status Codes
+
+| Status | Meaning |
+|--------|---------|
+| `400` | Invalid request (bad body, value out of range, invalid PIX key) |
+| `401` | Missing or invalid API key |
+| `403` | Account not authorized (developer flag or verification required) |
+| `404` | Resource not found |
+| `422` | Insufficient balance for withdrawal |
+| `429` | Rate limit exceeded |
+| `500` | Internal server error |
+| `502` | Payment gateway error (upstream provider unavailable) |
+| `503` | Service unavailable (maintenance mode) |
+
+## Error Codes
+
+| Code | Description | How to fix |
+|------|-------------|------------|
+| `unauthorized` | Missing or invalid API key | Check that your `nox_...` key is correct and not revoked |
+| `developer_required` | Developer flag not enabled | Ask an administrator to enable developer access |
+| `account_not_verified` | Account must be verified to create payments | Complete account verification |
+| `invalid_value` | Value out of accepted range | Use 1–10,000 yuan for payments, 1–100,000 yuan for withdrawals |
+| `insufficient_balance` | Not enough yuan for withdrawal | Check `GET /v1/balance` before withdrawing |
+| `rate_limited` | Too many requests | Wait for `Retry-After` seconds |
+| `not_found` | Payment not found for this account | Verify the `payment_id` belongs to your account |
+| `payment_provider_error` | Gateway rejected the charge | Retry the request |
+| `maintenance` | Service under maintenance | Retry later |
+| `internal` | Internal server error | Retry; contact support if it persists |
+
+<Note>
+  Always check both the HTTP status and the `error.code` field for accurate error handling.
+</Note>

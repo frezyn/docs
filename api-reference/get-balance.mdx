@@ -1,0 +1,36 @@
+---
+title: "GET /v1/balance — View Your Available Yuan Balance"
+sidebarTitle: "GET /v1/balance"
+description: "GET /v1/balance returns your current available yuan balance on noob-exchange. Excludes yuan reserved by pending withdrawal requests."
+---
+
+`GET /v1/balance` returns the current yuan balance for your account. The balance increases automatically when a PIX payment you created is confirmed by the payer. Yuan is debited when you submit a withdrawal request.
+
+## Request
+
+```bash
+curl https://api.noobexchange.example.com/v1/balance \
+  -H "Authorization: Bearer nox_your_key_here"
+```
+
+## Response (200 OK)
+
+<ResponseField name="yuan_balance" type="number">
+  Your current available yuan balance. This is the amount you can withdraw. Does not include yuan reserved by pending withdrawal requests.
+</ResponseField>
+
+**Example response**
+
+```json
+{
+  "yuan_balance": 100
+}
+```
+
+## Errors
+
+| HTTP Status | Error Code | Description |
+|-------------|------------|-------------|
+| `401` | `unauthorized` | Missing or invalid Bearer token. |
+| `403` | `developer_required` | Your account does not have developer access enabled. |
+| `500` | `internal` | An unexpected server-side error occurred. |

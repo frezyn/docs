@@ -1,0 +1,43 @@
+---
+title: "noob-exchange API Rate Limits: Payments and Withdrawals"
+sidebarTitle: "Rate Limits"
+description: "noob-exchange enforces per-key rate limits on payments and withdrawals. Learn the limits and how to handle 429 responses with Retry-After."
+---
+
+noob-exchange enforces rate limits on a per-API-key basis to ensure fair usage across all integrations. Limits apply to write operations that trigger financial activity; read endpoints are unrestricted.
+
+## Limits
+
+| Endpoint | Limit |
+|---|---|
+| `POST /v1/payments` | 20 per hour |
+| `POST /v1/withdrawals` | 10 per hour |
+
+`GET /v1/quote`, `GET /v1/balance`, `GET /v1/payments/{id}`, `GET /v1/withdrawals`, and all other read endpoints are **not rate-limited**.
+
+## Handling 429 Responses
+
+When your API key exceeds a limit, the server responds with HTTP **429 Too Many Requests** and a `Retry-After` header containing the number of seconds until your quota resets.
+
+**Example response:**
+
+```json
+{
+  "error": {
+    "code": "rate_limited",
+    "message": "Rate limit of 20 payments per hour per key exceeded."
+  }
+}
+```
+
+Read the `Retry-After` value from the response headers and wait that many seconds before retrying the request. Do not retry immediately — repeated requests against an active rate limit will not succeed and simply extend the window in some implementations.
+
+```
+HTTP/1.1 429 Too Many Requests
+Retry-After: 1743
+Content-Type: application/json
+```
+
+<Tip>
+  If your integration requires throughput beyond the per-key limits, provision multiple API keys and distribute requests across them. Each key carries its own independent quota.
+</Tip>
