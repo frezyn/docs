@@ -1,0 +1,43 @@
+---
+title: "Limites de Requisições da API noob-exchange: Pagamentos e Saques"
+sidebarTitle: "Rate Limits"
+description: "O noob-exchange aplica limites de requisições por chave a pagamentos e saques. Conheça os limites e como tratar respostas 429 com Retry-After."
+---
+
+O noob-exchange aplica limites de requisições por chave de API para garantir uso justo entre todas as integrações. Os limites valem para operações de escrita que geram atividade financeira; os endpoints de leitura são ilimitados.
+
+## Limites
+
+| Endpoint | Limite |
+|---|---|
+| `POST /v1/payments` | 20 por hora |
+| `POST /v1/withdrawals` | 10 por hora |
+
+`GET /v1/quote`, `GET /v1/balance`, `GET /v1/payments/{id}`, `GET /v1/withdrawals` e todos os outros endpoints de leitura **não possuem limite de requisições**.
+
+## Tratando Respostas 429
+
+Quando sua chave de API excede um limite, o servidor responde com HTTP **429 Too Many Requests** e um header `Retry-After` contendo o número de segundos até sua cota ser redefinida.
+
+**Exemplo de resposta:**
+
+```json
+{
+  "error": {
+    "code": "rate_limited",
+    "message": "Limite de 20 pagamentos por hora por chave excedido."
+  }
+}
+```
+
+Leia o valor de `Retry-After` dos headers da resposta e aguarde esse número de segundos antes de repetir a requisição. Não repita imediatamente — requisições repetidas contra um limite ativo não terão sucesso e, em algumas implementações, apenas estendem a janela de bloqueio.
+
+```
+HTTP/1.1 429 Too Many Requests
+Retry-After: 1743
+Content-Type: application/json
+```
+
+<Tip>
+  Se a sua integração exige um throughput acima dos limites por chave, providencie múltiplas chaves de API e distribua as requisições entre elas. Cada chave possui sua própria cota independente.
+</Tip>

@@ -1,0 +1,99 @@
+---
+title: "Gerar uma Cobrança de Pagamento PIX via API noob-exchange"
+sidebarTitle: "Criar Pagamento"
+description: "Aprenda a usar POST /v1/payments para criar um QR code PIX para uma cobrança em yuan, apresentá-lo aos pagadores e monitorar a quitação."
+---
+
+O `POST /v1/payments` gera um QR code PIX para uma cobrança denominada em yuan. O pagador escaneia o código e paga em BRL; você recebe o equivalente em yuan creditado no seu saldo quando o pagamento é confirmado.
+
+<Steps>
+  <Step title="Verifique os Pré-requisitos">
+    Antes de criar um pagamento, certifique-se de que sua conta atende aos seguintes requisitos:
+
+    - Sua conta está **verificada** (KYC concluído).
+    - A **flag de developer** está habilitada na sua conta. É gratuito — solicite abrindo um ticket no nosso [Discord](https://discord.gg/VrpkYgKrqw).
+    - Você tem uma chave de API válida iniciada com `nox_`.
+
+    Você pode gerar e gerenciar chaves de API no dashboard do noob-exchange.
+  </Step>
+
+  <Step title="Confira a Cotação Atual">
+    Esta etapa é opcional, mas recomendada. Buscar a cotação BRL/yuan atual permite exibir um valor em BRL preciso para o pagador antes de apresentar o QR code.
+
+    ```bash
+    curl https://api.noob.exchange/v1/quote \
+      -H "Authorization: Bearer nox_sua_chave_api"
+    ```
+
+    A resposta retorna um valor `quote` representando quantos BRL equivalem a um yuan. Use-o para estimar a cobrança em BRL:
+
+    ```
+    amount_real = yuan_value / quote
+    ```
+
+    Por exemplo, 100 yuan com cotação de 1,2 custam **83,33 BRL** ao pagador.
+  </Step>
+
+  <Step title="Crie o Pagamento">
+    Envie uma requisição `POST` com o `value` em yuan que você deseja cobrar. A API retorna um QR code PIX pronto para uso, junto com metadados do pagamento.
+
+    ```bash
+    curl -X POST https://api.noob.exchange/v1/payments \
+      -H "Authorization: Bearer nox_sua_chave_api" \
+      -H "Content-Type: application/json" \
+      -d '{"value": 100}'
+    ```
+
+    **Resposta**
+
+    ```json
+    {
+      "qrcode": "iVBORw0KGgo...",
+      "pix_key": "00020126...",
+      "payment_id": "3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a",
+      "yuan_value": 100,
+      "amount_real": 83.33,
+      "quote": 1.2,
+      "expires_at": "2026-09-24T23:10:00Z",
+      "status_url": "/v1/payments/3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a"
+    }
+    ```
+
+    | Campo | Descrição |
+    |---|---|
+    | `qrcode` | PNG em base64 do QR code PIX. |
+    | `pix_key` | Código PIX copia-e-cola bruto (formato EMV). |
+    | `payment_id` | Identificador único deste pagamento. |
+    | `yuan_value` | Valor em yuan que você receberá após a confirmação. |
+    | `amount_real` | Valor exato em BRL que o pagador deve enviar. |
+    | `quote` | Câmbio BRL/yuan travado no momento da criação. |
+    | `expires_at` | Timestamp ISO 8601 em que a cobrança expira. |
+    | `status_url` | Caminho para consultar atualizações de status deste pagamento. |
+  </Step>
+
+  <Step title="Apresente o QR Code ou o Código Copia-e-cola">
+    Você tem duas opções para apresentar o pagamento ao pagador:
+
+    - **Imagem do QR code** — Decodifique o campo `qrcode` de base64 e renderize-o como imagem PNG na sua interface. A maioria dos aplicativos bancários consegue escaneá-lo diretamente.
+    - **Código PIX copia-e-cola** — Exiba a string do `pix_key` para que o pagador cole no campo "PIX copia e cola" do aplicativo do banco.
+
+    A maioria das implementações oferece as duas opções lado a lado.
+  </Step>
+
+  <Step title="Monitore o Pagamento">
+    Após apresentar a cobrança, acompanhe o status até que ela seja confirmada ou expire. Você tem duas opções:
+
+    - **Webhooks (recomendado)** — O noob-exchange envia uma notificação ao endpoint que você configurou assim que o pagamento é confirmado.
+    - **Polling** — Chame `GET /v1/payments/{id}` em intervalos regulares para verificar o status atual.
+
+    Consulte [Verificar Status do Pagamento](/pt-BR/guides/check-payment-status) para detalhes completos sobre ambas as abordagens.
+  </Step>
+</Steps>
+
+<Note>
+  O intervalo aceito para cobranças é de **1 a 10.000 yuan** por pagamento. Requisições fora desse intervalo serão rejeitadas com um erro `422`.
+</Note>
+
+<Warning>
+  As cobranças PIX expiram em **10 minutos**. Após `expires_at`, o QR code e o `pix_key` deixam de ser válidos e o pagamento passa para o status `expired`. Crie um novo pagamento se o pagador precisar de mais tempo.
+</Warning>

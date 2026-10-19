@@ -1,0 +1,39 @@
+---
+title: "noob-exchange: API de Câmbio PIX para Yuan para Desenvolvedores"
+sidebarTitle: "Início"
+description: "O noob-exchange permite que você receba pagamentos PIX em BRL e credite o valor equivalente em yuan no seu saldo, pronto para sacar a qualquer momento."
+---
+
+O noob-exchange é uma API de câmbio construída para desenvolvedores. Receba pagamentos em reais brasileiros (BRL) via PIX, e o valor equivalente em yuan é creditado automaticamente no seu saldo — sem conversão manual, sem espera. Quando quiser, saque seu saldo em yuan para qualquer chave PIX em segundos.
+
+<CardGroup cols={2}>
+  <Card title="Introdução" icon="book-open" href="/pt-BR/introduction">
+    Entenda o que é o noob-exchange e como ele funciona
+  </Card>
+  <Card title="Autenticação" icon="key" href="/pt-BR/authentication">
+    Crie sua chave de API e autentique requisições
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/pt-BR/quickstart">
+    Faça sua primeira chamada de API em minutos
+  </Card>
+  <Card title="Referência da API" icon="code" href="/pt-BR/api-reference/overview">
+    Explore a referência completa da API
+  </Card>
+</CardGroup>
+
+## Como Funciona
+
+<Steps>
+  <Step title="Crie um Pagamento">
+    Chame `POST /v1/payments` com o valor em BRL. A API retorna um QR code PIX e um código copia-e-cola, prontos para compartilhar com o pagador.
+  </Step>
+  <Step title="O Pagador Conclui a Transferência PIX">
+    O pagador escaneia o QR code e envia o valor em BRL de qualquer banco ou carteira com PIX. Os pagamentos expiram após 10 minutos.
+  </Step>
+  <Step title="O Yuan É Creditado no Seu Saldo">
+    Assim que a transferência PIX é confirmada, o noob-exchange converte o BRL pela cotação atual e credita o valor equivalente em yuan no saldo da sua conta instantaneamente.
+  </Step>
+  <Step title="Saque para Qualquer Chave PIX">
+    Chame `POST /v1/withdrawals` com uma chave PIX de destino (CPF, telefone, e-mail ou chave aleatória) para transferir seu saldo em yuan a qualquer momento.
+  </Step>
+</Steps>

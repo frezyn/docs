@@ -1,0 +1,47 @@
+---
+title: "Fluxo de Pagamento PIX do noob-exchange: Guia de BRL para Yuan"
+sidebarTitle: "Fluxo de Pagamento"
+description: "Entenda como o noob-exchange converte pagamentos PIX em BRL para saldo em yuan: da criação da cobrança e QR code até o acerto, crédito e expiração."
+---
+
+Quando você cria uma cobrança PIX via noob-exchange, a API trava uma cotação de câmbio, gera um QR code denominado em BRL e aguarda o pagador quitar. Assim que o pagamento PIX é confirmado, o valor equivalente em yuan é creditado automaticamente no seu saldo — sem necessidade de reconciliação manual.
+
+## Ciclo de Vida do Pagamento
+
+1. **Crie a cobrança** — chame `POST /v1/payments` com o `yuan_value` que você deseja receber. A API calcula o equivalente em BRL pela cotação atual e retorna um QR code (`qrcode`, PNG em base64), uma string EMV copia-e-cola (`pix_key`) e metadados incluindo `payment_id`, `yuan_value`, `amount_real`, `quote`, `expires_at` e uma `status_url`.
+2. **O pagador quita** — o pagador escaneia o QR code ou cola a string EMV no aplicativo do seu banco e paga o valor em BRL. A cobrança deve ser paga dentro de **10 minutos** após a criação.
+3. **Confirmação e crédito** — assim que a rede PIX confirma o pagamento, o noob-exchange dispara um webhook para o endpoint que você registrou e credita o `yuan_value` no seu saldo.
+4. **Fallback por polling** — se o seu webhook atrasar ou for perdido, chame `GET /v1/payments/{id}` para disparar uma nova checagem. A resposta sempre reflete o status mais recente.
+
+## Status do Pagamento
+
+| Status | Significado |
+|---|---|
+| `pending` | Cobrança criada; aguardando pagamento do pagador. |
+| `paid` | Pagamento PIX confirmado; o yuan foi creditado no seu saldo. |
+| `cancelled` | A cobrança foi cancelada antes de receber o pagamento. |
+| `expired` | A janela de 10 minutos se passou sem pagamento; nenhum yuan é creditado. |
+
+## A Cotação de Câmbio
+
+O valor em BRL devido pelo pagador é derivado da cotação vigente no momento em que a cobrança é criada:
+
+```
+amount_real = yuan_value / quote
+```
+
+Por exemplo, se você solicitar **100 yuan** e a cotação atual for **1,2 yuan por BRL**:
+
+```
+100 ÷ 1,2 = 83,33 BRL
+```
+
+A cotação é **congelada** no momento da criação, então variações do câmbio após a emissão da cobrança não afetam o valor devido pelo pagador nem o yuan que você recebe.
+
+## Expiração da Cobrança
+
+As cobranças expiram exatamente **10 minutos** após a criação. Se o pagador não quitar dentro desse prazo, a cobrança passa para o status `expired` e nenhum yuan é creditado no seu saldo. Você precisará criar uma nova cobrança se o pagador ainda quiser concluir a transação.
+
+<Note>
+  Webhooks são o caminho mais rápido para o acerto (settlement) — o yuan é creditado no momento em que a confirmação do PIX chega. `GET /v1/payments/{id}` é um fallback confiável: enquanto o status for `pending`, cada chamada dispara uma nova checagem ativa contra a rede PIX, em vez de apenas retornar dados em cache.
+</Note>

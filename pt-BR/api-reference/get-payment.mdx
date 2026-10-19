@@ -1,0 +1,77 @@
+---
+title: "GET /v1/payments/{id} — Buscar Pagamento PIX por ID"
+sidebarTitle: "GET /v1/payments/{id}"
+description: "GET /v1/payments/{id} retorna o status atual de um pagamento PIX, incluindo pago, pendente, expirado ou cancelado, além dos valores em BRL e yuan."
+---
+
+O `GET /v1/payments/{id}` retorna o status e os detalhes atuais de um pagamento específico. Consulte este endpoint para verificar se o pagador concluiu a transferência PIX e se seu saldo em yuan foi creditado.
+
+## Requisição
+
+**Parâmetro de caminho**
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-------------|
+| `id` | string (uuid) | O `payment_id` retornado por `POST /v1/payments`. |
+
+```bash
+curl https://api.noob.exchange/v1/payments/3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a \
+  -H "Authorization: Bearer nox_sua_chave_aqui"
+```
+
+## Resposta (200 OK)
+
+<ResponseField name="payment_id" type="string (uuid)">
+  Identificador único deste pagamento, correspondente ao parâmetro de caminho `id`.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Status atual do pagamento. Um entre:
+  - `pending` — aguardando confirmação do pagador
+  - `paid` — confirmado e yuan creditado no seu saldo
+  - `cancelled` — cancelado antes da expiração
+  - `expired` — a cobrança não foi paga em 10 minutos
+</ResponseField>
+
+<ResponseField name="yuan_value" type="number">
+  Valor em yuan a ser (ou já) creditado no seu saldo.
+</ResponseField>
+
+<ResponseField name="amount_real" type="number">
+  Valor em BRL cobrado do pagador.
+</ResponseField>
+
+<ResponseField name="quote" type="number">
+  Cotação de câmbio congelada no momento da criação.
+</ResponseField>
+
+<ResponseField name="paid_at" type="string (datetime)">
+  Timestamp ISO 8601 de quando o pagamento foi confirmado. Presente apenas quando o `status` é `paid`.
+</ResponseField>
+
+<ResponseField name="expires_at" type="string (datetime)">
+  Timestamp ISO 8601 de quando a cobrança expira ou expirou. Presente para pagamentos `pending` e `expired`.
+</ResponseField>
+
+**Exemplo de resposta**
+
+```json
+{
+  "payment_id": "3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a",
+  "status": "paid",
+  "yuan_value": 100,
+  "amount_real": 83.33,
+  "quote": 1.2,
+  "paid_at": "2024-06-01T15:07:42Z",
+  "expires_at": "2024-06-01T15:10:00Z"
+}
+```
+
+## Erros
+
+| Status HTTP | Código de Erro | Descrição |
+|-------------|------------|-------------|
+| `400` | `invalid_id` | O `id` informado não é um UUID válido. |
+| `401` | `unauthorized` | Token Bearer ausente ou inválido. |
+| `403` | `developer_required` | Sua conta não tem acesso de desenvolvedor habilitado. |
+| `404` | `not_found` | Não existe pagamento com o `id` informado para a sua conta. |

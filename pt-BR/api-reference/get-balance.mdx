@@ -1,0 +1,36 @@
+---
+title: "GET /v1/balance — Verificar Seu Saldo Disponível em Yuan"
+sidebarTitle: "GET /v1/balance"
+description: "GET /v1/balance retorna seu saldo atual disponível em yuan no noob-exchange. Exclui o yuan reservado por requisições de saque pendentes."
+---
+
+O `GET /v1/balance` retorna o saldo atual em yuan da sua conta. O saldo aumenta automaticamente quando um pagamento PIX que você criou é confirmado pelo pagador. O yuan é debitado quando você envia uma requisição de saque.
+
+## Requisição
+
+```bash
+curl https://api.noob.exchange/v1/balance \
+  -H "Authorization: Bearer nox_sua_chave_aqui"
+```
+
+## Resposta (200 OK)
+
+<ResponseField name="yuan_balance" type="number">
+  Seu saldo atual disponível em yuan. Esse é o valor que você pode sacar. Não inclui o yuan reservado por requisições de saque pendentes.
+</ResponseField>
+
+**Exemplo de resposta**
+
+```json
+{
+  "yuan_balance": 100
+}
+```
+
+## Erros
+
+| Status HTTP | Código de Erro | Descrição |
+|-------------|------------|-------------|
+| `401` | `unauthorized` | Token Bearer ausente ou inválido. |
+| `403` | `developer_required` | Sua conta não tem acesso de desenvolvedor habilitado. |
+| `500` | `internal` | Ocorreu um erro inesperado do lado do servidor. |

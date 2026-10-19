@@ -1,0 +1,64 @@
+---
+title: "FAQ do noob-exchange: Perguntas sobre Integração com a API"
+sidebarTitle: "FAQ"
+description: "Respostas às perguntas comuns sobre chaves de API, fluxos de pagamento, cotações de câmbio, saques e requisitos de conta no noob-exchange."
+---
+
+Perguntas comuns sobre o uso da API do noob-exchange — abordando chaves de API, fluxos de pagamento, cotações de câmbio, saques e requisitos de conta.
+
+<AccordionGroup>
+  <Accordion title="Como obtenho uma chave de API de desenvolvedor?">
+    Acesse `/settings/api-keys` no dashboard. As chaves são exibidas apenas uma vez — armazene-as com segurança imediatamente após a criação. Note que a flag de developer precisa estar habilitada na sua conta antes que você possa gerar ou usar chaves de API. Solicite-a gratuitamente abrindo um ticket no nosso [Discord](https://discord.gg/VrpkYgKrqw).
+  </Accordion>
+
+  <Accordion title="Por que recebo 403 developer_required?">
+    A flag de developer não foi habilitada na sua conta. Entre no nosso [Discord](https://discord.gg/VrpkYgKrqw) e abra um ticket solicitando a flag de developer — a solicitação não tem custo. Uma vez habilitada, suas chaves de API existentes funcionarão sem nenhuma alteração.
+  </Accordion>
+
+  <Accordion title="Como o valor em BRL é calculado?">
+    O BRL é derivado do valor em yuan e da cotação de câmbio no momento da criação do pagamento:
+
+    ```
+    BRL = yuan_value / quote
+    ```
+
+    Por exemplo, 100 yuan com cotação de 1,2 equivalem a 83,33 BRL. A cotação é **congelada no momento da criação do pagamento** — variações posteriores não afetam a cobrança.
+  </Accordion>
+
+  <Accordion title="O que acontece se o pagamento PIX não for concluído a tempo?">
+    A cobrança PIX expira após **10 minutos**. Se o pagamento não for recebido nesse prazo, o status do pagamento passa para `expired` e nenhum yuan é creditado no seu saldo. Será necessário criar um novo pagamento para tentar novamente.
+  </Accordion>
+
+  <Accordion title="Quando o meu saldo em yuan é atualizado?">
+    Seu saldo é creditado quando um pagamento é confirmado. A confirmação é disparada de duas formas: ao receber um evento de webhook para o pagamento ou ao consultar `GET /v1/payments/{id}` — que também dispara o acerto (settlement) quando o pagamento for constatado como concluído.
+  </Accordion>
+
+  <Accordion title="Quanto tempo um saque leva?">
+    Os saques são processados pelo noob-exchange. O status passa de `pending` para `paid` assim que a transferência em BRL é enviada. Se o saque for recusado, o status passa a ser `rejected` e o valor em yuan é devolvido automaticamente ao seu saldo.
+  </Accordion>
+
+  <Accordion title="Posso usar várias chaves de API?">
+    Sim. Os limites de requisições (rate limits) são aplicados **por chave de API**, então distribuir requisições entre várias chaves permite escalar seu throughput proporcionalmente. Você pode criar e gerenciar todas as suas chaves em `/settings/api-keys` no dashboard.
+  </Accordion>
+
+  <Accordion title="Qual é o valor máximo de um pagamento?">
+    - **Pagamentos:** 1 a 10.000 yuan por requisição de pagamento.
+    - **Saques:** 1 a 100.000 yuan por requisição de saque.
+
+    Requisições fora desses intervalos retornam um status `400` com o código de erro `invalid_value`.
+  </Accordion>
+
+  <Accordion title="Quais formatos de chave PIX são aceitos?">
+    Qualquer formato válido de chave PIX é aceito: CPF, CNPJ, número de telefone, e-mail ou chave aleatória. A chave deve ter entre **5 e 200 caracteres**. Requisições com chaves fora desse intervalo são rejeitadas com um status `400`.
+  </Accordion>
+
+  <Accordion title="Como verifico se a API está operacional?">
+    Chame `GET /health` — nenhuma autenticação é necessária. Uma API saudável retorna:
+
+    ```json
+    { "status": "ok" }
+    ```
+
+    Se o serviço estiver em modo de manutenção, o endpoint retorna `503` com o código de erro `maintenance`.
+  </Accordion>
+</AccordionGroup>

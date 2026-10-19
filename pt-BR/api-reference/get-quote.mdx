@@ -1,0 +1,37 @@
+---
+title: "GET /v1/quote — Buscar a Cotação de Câmbio Atual"
+sidebarTitle: "GET /v1/quote"
+description: "Retorna a cotação de câmbio em tempo real yuan-BRL usada em todos os pagamentos e saques do noob-exchange. Sem corpo de requisição; é necessário token de autenticação."
+---
+
+O `GET /v1/quote` retorna a cotação de câmbio atual (yuan por BRL) usada pelo noob-exchange em todas as conversões de pagamento e saque. A taxa é atualizada em tempo real e é a mesma taxa aplicada quando você cria um pagamento ou saque.
+
+## Requisição
+
+```bash
+curl https://api.noob.exchange/v1/quote \
+  -H "Authorization: Bearer nox_sua_chave_aqui"
+```
+
+## Resposta
+
+<ResponseField name="quote" type="number">
+  Cotação de câmbio atual expressa em yuan por BRL. Por exemplo, um valor de `1.2` significa que 1 yuan custa 0,833 BRL — o pagador envia 0,833 BRL a cada 1 yuan que você recebe.
+</ResponseField>
+
+**Exemplo de resposta**
+
+```json
+{
+  "quote": 1.2
+}
+```
+
+## Erros
+
+| Status HTTP | Código de Erro | Descrição |
+|-------------|------------|-------------|
+| `401` | `unauthorized` | Token Bearer ausente ou inválido. |
+| `403` | `developer_required` | Sua conta não tem acesso de desenvolvedor habilitado. |
+| `403` | `account_not_verified` | Sua conta não concluiu a verificação de identidade. |
+| `500` | `internal` | Ocorreu um erro inesperado do lado do servidor. |

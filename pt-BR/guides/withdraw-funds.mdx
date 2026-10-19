@@ -1,0 +1,114 @@
+---
+title: "Saque seu Saldo em Yuan do noob-exchange via Chave PIX"
+sidebarTitle: "Sacar Fundos"
+description: "Solicite o saque do seu saldo em yuan para qualquer chave PIX usando POST /v1/withdrawals. Os fundos são convertidos para BRL pela cotação atual."
+---
+
+Assim que você tiver saldo em yuan proveniente de pagamentos confirmados, use `POST /v1/withdrawals` para convertê-lo em BRL e enviá-lo a qualquer chave PIX válida. A conversão usa a cotação BRL/yuan em tempo real no momento em que o saque é processado.
+
+<Steps>
+  <Step title="Confira Seu Saldo">
+    Antes de solicitar um saque, verifique se você tem yuan suficiente disponível.
+
+    ```bash
+    curl https://api.noob.exchange/v1/balance \
+      -H "Authorization: Bearer nox_sua_chave_api"
+    ```
+
+    **Resposta**
+
+    ```json
+    {
+      "yuan_balance": 100
+    }
+    ```
+
+    Apenas o yuan exibido em `yuan_balance` está disponível para saque. Qualquer yuan reservado por um saque pendente já está excluído desse valor.
+  </Step>
+
+  <Step title="Confira a Cotação Atual">
+    Busque a cotação de câmbio BRL/yuan atual para estimar quanto BRL você receberá.
+
+    ```bash
+    curl https://api.noob.exchange/v1/quote \
+      -H "Authorization: Bearer nox_sua_chave_api"
+    ```
+
+    Use a `quote` retornada para calcular o pagamento estimado:
+
+    ```
+    value_real = yuan_value / quote
+    ```
+
+    Por exemplo, sacar 50 yuan com uma cotação de 1,2 rende aproximadamente **41,67 BRL**. A taxa final é travada no momento do processamento, então o valor real em BRL pode variar levemente se a cotação se mover entre esta checagem e o acerto.
+  </Step>
+
+  <Step title="Solicite o Saque">
+    Envie o saque com o valor em yuan e sua chave PIX de destino. Qualquer tipo de chave PIX é aceito (CPF, CNPJ, telefone, e-mail ou chave aleatória).
+
+    ```bash
+    curl -X POST https://api.noob.exchange/v1/withdrawals \
+      -H "Authorization: Bearer nox_sua_chave_api" \
+      -H "Content-Type: application/json" \
+      -d '{"yuan_value": 50, "pix_key": "user@example.com"}'
+    ```
+
+    **Resposta**
+
+    ```json
+    {
+      "id": "dbb54c30-7325-4805-a787-5a4ae98581e7",
+      "yuan_value": 50,
+      "value_real": 41.67,
+      "quote": 1.2,
+      "pix_key": "user@example.com",
+      "status": "pending"
+    }
+    ```
+
+    | Campo | Descrição |
+    |---|---|
+    | `id` | Identificador único desta solicitação de saque. |
+    | `yuan_value` | Valor em yuan deduzido do seu saldo. |
+    | `value_real` | Valor estimado em BRL a ser enviado para sua chave PIX. |
+    | `quote` | Câmbio BRL/yuan usado na estimativa de conversão. |
+    | `pix_key` | Chave PIX de destino que você informou. |
+    | `status` | Status atual do saque (`pending` na criação). |
+  </Step>
+
+  <Step title="Acompanhe o Saque">
+    Após enviar, consulte `GET /v1/withdrawals/{id}` ou aguarde uma notificação de webhook para detectar mudanças de status.
+
+    ```bash
+    curl https://api.noob.exchange/v1/withdrawals/dbb54c30-7325-4805-a787-5a4ae98581e7 \
+      -H "Authorization: Bearer nox_sua_chave_api"
+    ```
+
+    O campo `status` reflete o estágio atual do seu saque:
+
+    | Status | Descrição |
+    |---|---|
+    | `pending` | Aguardando processamento. O yuan está reservado. |
+    | `paid` | O BRL foi enviado para sua chave PIX. O saque está concluído. |
+    | `rejected` | A solicitação foi recusada. O yuan reservado foi devolvido ao seu saldo. |
+  </Step>
+
+  <Step title="Liste Saques Anteriores">
+    Revise todo o seu histórico de saques com uma única chamada.
+
+    ```bash
+    curl https://api.noob.exchange/v1/withdrawals \
+      -H "Authorization: Bearer nox_sua_chave_api"
+    ```
+
+    A resposta retorna um array paginado de objetos de saque, ordenados por data de criação (mais recentes primeiro). Use-o para conciliar seus registros ou exibir transações anteriores no seu painel.
+  </Step>
+</Steps>
+
+<Warning>
+  O yuan é **reservado imediatamente** quando você envia uma requisição de saque e fica indisponível para outros saques enquanto a requisição está pendente. Caso o saque seja recusado, o yuan reservado é devolvido automaticamente ao seu saldo.
+</Warning>
+
+<Note>
+  Limites de saque: **1 a 100.000 yuan** por requisição, com no máximo **10 solicitações de saque por hora**. Requisições fora desses limites serão rejeitadas com um erro `422`.
+</Note>

@@ -1,0 +1,73 @@
+---
+title: "Gerenciando Seu Saldo em Yuan e Saques via PIX na API"
+sidebarTitle: "Saldo e Saques"
+description: "Entenda como o saldo em yuan se acumula com cobranças PIX confirmadas, como solicitar um saque para uma chave PIX e os limites aplicados por chave de API."
+---
+
+Seu saldo em yuan cresce automaticamente toda vez que uma cobrança PIX que você criou é confirmada como paga. Quando quiser converter esse saldo de volta para BRL, chame `POST /v1/withdrawals` com o valor e uma chave PIX de destino — o noob-exchange cuida da conversão e envia os fundos para o destinatário.
+
+## Como o Saldo se Acumula
+
+Todo pagamento confirmado adiciona seu `yuan_value` ao saldo da sua conta. Para consultar seu saldo atual a qualquer momento:
+
+```
+GET /v1/balance
+```
+
+Resposta:
+
+```json
+{
+  "yuan_balance": 342.50
+}
+```
+
+Apenas cobranças com status `paid` contribuem para o seu saldo. Cobranças `expired` e `cancelled` não têm efeito.
+
+## Solicitando um Saque
+
+Especifique o valor que você deseja sacar (`yuan_value`) e a chave PIX de destino (`pix_key`). O yuan é **reservado imediatamente** e o equivalente em BRL é calculado usando a cotação vigente no momento da requisição — essa cotação fica então congelada para o saque.
+
+**Corpo da requisição:**
+
+```json
+{
+  "yuan_value": 50,
+  "pix_key": "user@example.com"
+}
+```
+
+**Resposta:**
+
+```json
+{
+  "id": "wd_01J3K8MPQR4XYZABCDEF",
+  "yuan_value": 50,
+  "value_real": 41.67,
+  "quote": 1.2,
+  "pix_key": "user@example.com",
+  "status": "pending"
+}
+```
+
+Use `GET /v1/withdrawals` para listar seus 50 saques mais recentes e acompanhar o progresso deles.
+
+## Status do Saque
+
+| Status | Significado |
+|---|---|
+| `pending` | Saque recebido; aguardando processamento pelo administrador. |
+| `paid` | O BRL foi enviado para a chave PIX especificada. |
+| `rejected` | O saque foi recusado pelo administrador; o yuan reservado foi devolvido ao seu saldo. |
+
+## Limites de Saque
+
+| Parâmetro | Valor |
+|---|---|
+| Mínimo por requisição | 1 yuan |
+| Máximo por requisição | 100.000 yuan |
+| Limite de requisições | 10 saques por hora por chave de API |
+
+<Warning>
+  Seu saldo em yuan é reservado no momento em que a requisição de saque é enviada — ele não estará disponível para novos saques enquanto a requisição estiver `pending`. Caso o administrador recuse o saque, o yuan reservado é devolvido automaticamente ao seu saldo integralmente.
+</Warning>

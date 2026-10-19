@@ -1,0 +1,83 @@
+---
+title: "POST /v1/withdrawals — Converter Yuan em BRL via PIX"
+sidebarTitle: "POST /v1/withdrawals"
+description: "POST /v1/withdrawals converte o saldo em yuan para BRL pela cotação atual e envia para a sua chave PIX. O saldo é reservado imediatamente."
+---
+
+O `POST /v1/withdrawals` solicita o saque do seu saldo em yuan, convertido para BRL pela cotação de câmbio atual e enviado à chave PIX que você informar. O valor em yuan é reservado imediatamente na requisição e devolvido ao seu saldo apenas se o saque for recusado.
+
+<Warning>
+  O yuan é debitado do seu saldo imediatamente na requisição — antes de a transferência ser processada. Se o saque for recusado, o valor reservado é devolvido ao seu saldo disponível.
+</Warning>
+
+## Requisição
+
+```bash
+curl -X POST https://api.noob.exchange/v1/withdrawals \
+  -H "Authorization: Bearer nox_sua_chave_aqui" \
+  -H "Content-Type: application/json" \
+  -d '{"yuan_value": 50, "pix_key": "user@example.com"}'
+```
+
+**Parâmetros do corpo**
+
+<ParamField body="yuan_value" type="number" required>
+  Valor em yuan a sacar. Deve estar entre `1` e `100.000` (inclusive) e não pode exceder seu saldo disponível atual.
+</ParamField>
+
+<ParamField body="pix_key" type="string" required>
+  Chave PIX que receberá a transferência em BRL. Aceita qualquer tipo de chave PIX (CPF, CNPJ, telefone, e-mail ou chave aleatória). Entre 5 e 200 caracteres.
+</ParamField>
+
+## Resposta (201 Created)
+
+<ResponseField name="id" type="string (uuid)">
+  Identificador único desta solicitação de saque. Use-o para acompanhar o status em `GET /v1/withdrawals`.
+</ResponseField>
+
+<ResponseField name="yuan_value" type="number">
+  Valor em yuan reservado e a ser convertido.
+</ResponseField>
+
+<ResponseField name="value_real" type="number">
+  Valor em BRL que será enviado à sua chave PIX, calculado a partir do `yuan_value` e da `quote` congelada.
+</ResponseField>
+
+<ResponseField name="quote" type="number">
+  Cotação de câmbio (yuan por BRL) congelada no momento em que este saque foi solicitado.
+</ResponseField>
+
+<ResponseField name="pix_key" type="string">
+  Chave PIX informada no corpo da requisição.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Status atual do saque. Um entre:
+  - `pending` — aguardando processamento
+  - `paid` — transferência em BRL concluída
+  - `rejected` — requisição recusada; saldo devolvido
+</ResponseField>
+
+**Exemplo de resposta**
+
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "yuan_value": 50,
+  "value_real": 41.67,
+  "quote": 1.2,
+  "pix_key": "user@example.com",
+  "status": "pending"
+}
+```
+
+## Erros
+
+| Status HTTP | Código de Erro | Descrição |
+|-------------|------------|-------------|
+| `400` | `invalid_value` | `yuan_value` ou `pix_key` ausente, com o tipo errado ou fora do intervalo. |
+| `401` | `unauthorized` | Token Bearer ausente ou inválido. |
+| `403` | `developer_required` | Sua conta não tem acesso de desenvolvedor habilitado. |
+| `422` | `insufficient_balance` | Seu saldo disponível em yuan é menor que `yuan_value`. |
+| `429` | `rate_limited` | Requisições de saque em excesso. Volte e repita após o intervalo do `Retry-After`. |
+| `503` | `maintenance` | A API está temporariamente indisponível para manutenção programada. |

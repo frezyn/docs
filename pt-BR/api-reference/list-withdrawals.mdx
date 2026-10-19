@@ -1,0 +1,84 @@
+---
+title: "GET /v1/withdrawals — Verificar Seu Histórico de Saques"
+sidebarTitle: "GET /v1/withdrawals"
+description: "GET /v1/withdrawals retorna até 50 saques recentes da sua conta, do mais novo ao mais antigo, com status, valores em BRL e timestamps de processamento."
+---
+
+O `GET /v1/withdrawals` retorna até 50 das solicitações de saque mais recentes da sua conta, ordenadas do mais novo para o mais antigo. Use o campo `status` de cada entrada para acompanhar transferências pendentes e concluídas.
+
+## Requisição
+
+```bash
+curl https://api.noob.exchange/v1/withdrawals \
+  -H "Authorization: Bearer nox_sua_chave_aqui"
+```
+
+## Resposta (200 OK)
+
+A resposta é um array JSON de objetos de saque. Cada objeto contém os seguintes campos:
+
+<ResponseField name="id" type="string (uuid)">
+  Identificador único da solicitação de saque.
+</ResponseField>
+
+<ResponseField name="yuan_value" type="number">
+  Valor em yuan reservado e convertido neste saque.
+</ResponseField>
+
+<ResponseField name="value_real" type="number">
+  Valor em BRL enviado (ou a ser enviado) à chave PIX, com base na `quote` congelada.
+</ResponseField>
+
+<ResponseField name="quote" type="number">
+  Cotação de câmbio (yuan por BRL) congelada no momento em que o saque foi solicitado.
+</ResponseField>
+
+<ResponseField name="pix_key" type="string">
+  Chave PIX que recebeu ou receberá a transferência em BRL.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Status atual do saque. Um entre `pending`, `paid` ou `rejected`.
+</ResponseField>
+
+<ResponseField name="created_at" type="string (datetime)">
+  Timestamp ISO 8601 de quando a solicitação de saque foi enviada.
+</ResponseField>
+
+<ResponseField name="processed_at" type="string (datetime)">
+  Timestamp ISO 8601 de quando o saque foi processado (pago ou recusado). Presente apenas depois que o saque foi executado.
+</ResponseField>
+
+**Exemplo de resposta**
+
+```json
+[
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "yuan_value": 50,
+    "value_real": 41.67,
+    "quote": 1.2,
+    "pix_key": "user@example.com",
+    "status": "paid",
+    "created_at": "2024-06-01T14:00:00Z",
+    "processed_at": "2024-06-01T14:35:22Z"
+  },
+  {
+    "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "yuan_value": 20,
+    "value_real": 16.67,
+    "quote": 1.2,
+    "pix_key": "user@example.com",
+    "status": "pending",
+    "created_at": "2024-06-01T16:10:00Z"
+  }
+]
+```
+
+## Erros
+
+| Status HTTP | Código de Erro | Descrição |
+|-------------|------------|-------------|
+| `401` | `unauthorized` | Token Bearer ausente ou inválido. |
+| `403` | `developer_required` | Sua conta não tem acesso de desenvolvedor habilitado. |
+| `500` | `internal` | Ocorreu um erro inesperado do lado do servidor. |

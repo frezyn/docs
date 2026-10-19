@@ -9,52 +9,111 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "tabs": [
+    "languages": [
       {
-        "tab": "Documentation",
-        "groups": [
+        "language": "en",
+        "tabs": [
           {
-            "group": "Get Started",
-            "pages": ["introduction", "authentication", "quickstart"]
-          },
-          {
-            "group": "Core Concepts",
-            "pages": [
-              "concepts/payment-flow",
-              "concepts/balance-withdrawals",
-              "concepts/rate-limits"
+            "tab": "Documentation",
+            "groups": [
+              {
+                "group": "Get Started",
+                "pages": ["introduction", "authentication", "quickstart"]
+              },
+              {
+                "group": "Core Concepts",
+                "pages": [
+                  "concepts/payment-flow",
+                  "concepts/balance-withdrawals",
+                  "concepts/rate-limits"
+                ]
+              },
+              {
+                "group": "Guides",
+                "pages": [
+                  "guides/create-payment",
+                  "guides/check-payment-status",
+                  "guides/withdraw-funds"
+                ]
+              },
+              {
+                "group": "Help",
+                "pages": ["errors", "faq"]
+              }
             ]
           },
           {
-            "group": "Guides",
-            "pages": [
-              "guides/create-payment",
-              "guides/check-payment-status",
-              "guides/withdraw-funds"
+            "tab": "API Reference",
+            "groups": [
+              {
+                "group": "Overview",
+                "pages": ["api-reference/overview"]
+              },
+              {
+                "group": "Endpoints",
+                "pages": [
+                  "api-reference/get-quote",
+                  "api-reference/create-payment",
+                  "api-reference/get-payment",
+                  "api-reference/get-balance",
+                  "api-reference/create-withdrawal",
+                  "api-reference/list-withdrawals"
+                ]
+              }
             ]
-          },
-          {
-            "group": "Help",
-            "pages": ["errors", "faq"]
           }
         ]
       },
       {
-        "tab": "API Reference",
-        "groups": [
+        "language": "pt-BR",
+        "tabs": [
           {
-            "group": "Overview",
-            "pages": ["api-reference/overview"]
+            "tab": "Documentação",
+            "groups": [
+              {
+                "group": "Primeiros Passos",
+                "pages": ["pt-BR/introduction", "pt-BR/authentication", "pt-BR/quickstart"]
+              },
+              {
+                "group": "Conceitos Principais",
+                "pages": [
+                  "pt-BR/concepts/payment-flow",
+                  "pt-BR/concepts/balance-withdrawals",
+                  "pt-BR/concepts/rate-limits"
+                ]
+              },
+              {
+                "group": "Guias",
+                "pages": [
+                  "pt-BR/guides/create-payment",
+                  "pt-BR/guides/check-payment-status",
+                  "pt-BR/guides/withdraw-funds"
+                ]
+              },
+              {
+                "group": "Ajuda",
+                "pages": ["pt-BR/errors", "pt-BR/faq"]
+              }
+            ]
           },
           {
-            "group": "Endpoints",
-            "pages": [
-              "api-reference/get-quote",
-              "api-reference/create-payment",
-              "api-reference/get-payment",
-              "api-reference/get-balance",
-              "api-reference/create-withdrawal",
-              "api-reference/list-withdrawals"
+            "tab": "Referência da API",
+            "groups": [
+              {
+                "group": "Visão Geral",
+                "pages": ["pt-BR/api-reference/overview"]
+              },
+              {
+                "group": "Endpoints",
+                "pages": [
+                  "pt-BR/api-reference/get-quote",
+                  "pt-BR/api-reference/create-payment",
+                  "pt-BR/api-reference/get-payment",
+                  "pt-BR/api-reference/get-balance",
+                  "pt-BR/api-reference/create-withdrawal",
+                  "pt-BR/api-reference/list-withdrawals"
+                ]
+              }
             ]
           }
         ]

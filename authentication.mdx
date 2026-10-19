@@ -33,13 +33,13 @@ Authorization: Bearer nox_your_key_here
 **Example — fetch your current yuan balance:**
 
 ```bash
-curl https://api.noobexchange.example.com/v1/balance \
+curl https://api.noob.exchange/v1/balance \
   -H "Authorization: Bearer nox_your_key_here"
 ```
 
 ## Developer Flag
 
-The developer flag gates access to the entire API. It is disabled by default and must be turned on by an administrator for your account. Until it is enabled, every request — regardless of key validity — returns:
+The developer flag gates access to the entire API. It is disabled by default and must be enabled on your account. To get it, join our [Discord](https://discord.gg/VrpkYgKrqw) and open a ticket requesting the developer flag. Until it is enabled, every request — regardless of key validity — returns:
 
 ```json
 {
@@ -48,7 +48,7 @@ The developer flag gates access to the entire API. It is disabled by default and
 ```
 
 <Note>
-  Contact your noob-exchange administrator to request developer access. Provide your account email so they can enable the flag on your account.
+  There is no cost to request the developer flag or to use the API. Open a ticket in [Discord](https://discord.gg/VrpkYgKrqw) so we can enable the flag on your account.
 </Note>
 
 ## Authentication Errors

@@ -1,0 +1,62 @@
+---
+title: "Referência da API noob-exchange — URL Base e Endpoints"
+sidebarTitle: "Visão Geral"
+description: "Referência completa da API REST do noob-exchange: URL base, autenticação Bearer, formato de requisição, envelope de erros e todos os sete endpoints públicos."
+---
+
+A API REST do noob-exchange permite que você crie pagamentos PIX programaticamente, verifique cotações de câmbio, gerencie seu saldo em yuan e solicite saques. Toda a comunicação acontece via HTTPS e retorna JSON.
+
+## URL Base
+
+```
+https://api.noob.exchange
+```
+
+Todos os caminhos de endpoints são relativos a esta URL base.
+
+## Autenticação
+
+Todos os endpoints — exceto `GET /health` — exigem um token Bearer no header `Authorization`.
+
+```http
+Authorization: Bearer nox_sua_chave_aqui
+```
+
+As chaves de API seguem o formato `nox_...`. Você pode gerar e revogar chaves no dashboard da sua conta. Consulte a página de [Autenticação](/pt-BR/authentication) para detalhes completos.
+
+## Formato de Requisição
+
+Para endpoints `POST`, envie um corpo JSON e inclua o header de content type apropriado:
+
+```http
+Content-Type: application/json
+```
+
+Parâmetros de query são usados onde indicado (por exemplo, filtros em endpoints de listagem).
+
+## Formato de Resposta
+
+Todas as respostas — incluindo erros — são JSON. Respostas bem-sucedidas retornam os campos documentados diretamente. Erros seguem um envelope consistente:
+
+```json
+{
+  "error": {
+    "code": "...",
+    "message": "..."
+  }
+}
+```
+
+Os códigos de status HTTP refletem o resultado: `2xx` para sucesso, `4xx` para erros do cliente e `5xx` para falhas do lado do servidor. Consulte a página de [Erros](/pt-BR/errors) para a lista completa de códigos de erro.
+
+## Endpoints
+
+| Método | Endpoint | Descrição |
+|--------|----------|-------------|
+| `GET` | `/health` | Verificação de saúde (sem autenticação) |
+| `GET` | `/v1/quote` | Cotação atual yuan/BRL |
+| `POST` | `/v1/payments` | Criar pagamento PIX |
+| `GET` | `/v1/payments/{id}` | Status do pagamento |
+| `GET` | `/v1/balance` | Saldo em yuan |
+| `POST` | `/v1/withdrawals` | Solicitar saque |
+| `GET` | `/v1/withdrawals` | Listar saques |

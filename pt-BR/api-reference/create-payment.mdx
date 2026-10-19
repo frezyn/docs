@@ -1,0 +1,83 @@
+---
+title: "POST /v1/payments — Criar um Pagamento PIX e QR Code"
+sidebarTitle: "POST /v1/payments"
+description: "POST /v1/payments cria uma cobrança PIX. Retorna um QR code e um código copia-e-cola. O pagador paga em BRL; você recebe yuan quando confirmado."
+---
+
+O `POST /v1/payments` cria uma cobrança PIX para o valor em yuan que você especifica. O pagador paga o equivalente em BRL pela cotação atual; você recebe o valor em yuan no seu saldo após a confirmação. A cobrança expira 10 minutos após a criação.
+
+## Requisição
+
+```bash
+curl -X POST https://api.noob.exchange/v1/payments \
+  -H "Authorization: Bearer nox_sua_chave_aqui" \
+  -H "Content-Type: application/json" \
+  -d '{"value": 100}'
+```
+
+**Parâmetros do corpo**
+
+<ParamField body="value" type="number" required>
+  Valor em yuan que você deseja receber. Deve estar entre `1` e `10.000` (inclusive).
+</ParamField>
+
+## Resposta (201 Created)
+
+<ResponseField name="qrcode" type="string">
+  Imagem do QR code PIX codificada como PNG em base64. Exiba-a ao pagador para que ele escaneie com qualquer aplicativo bancário compatível com PIX.
+</ResponseField>
+
+<ResponseField name="pix_key" type="string">
+  Código PIX EMV completo copia-e-cola. Use-o como alternativa para pagadores que não conseguem escanear o QR code.
+</ResponseField>
+
+<ResponseField name="payment_id" type="string (uuid)">
+  Identificador único deste pagamento. Passe-o para `GET /v1/payments/{id}` para consultar o status.
+</ResponseField>
+
+<ResponseField name="yuan_value" type="number">
+  Valor em yuan que você receberá quando o pagamento for confirmado.
+</ResponseField>
+
+<ResponseField name="amount_real" type="number">
+  Valor em BRL que o pagador deve enviar, calculado a partir do `yuan_value` e da `quote` atual.
+</ResponseField>
+
+<ResponseField name="quote" type="number">
+  Cotação de câmbio (yuan por BRL) congelada no momento em que esta cobrança foi criada.
+</ResponseField>
+
+<ResponseField name="expires_at" type="string (datetime)">
+  Timestamp ISO 8601 indicando quando a cobrança expira — 10 minutos após a criação. Cobranças não pagas até esse momento passam para o status `expired`.
+</ResponseField>
+
+<ResponseField name="status_url" type="string">
+  URL relativa que você pode usar para verificar o status do pagamento, por exemplo `/v1/payments/3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a`.
+</ResponseField>
+
+**Exemplo de resposta**
+
+```json
+{
+  "qrcode": "iVBORw0KGgoAAAANSUhEUgAA...",
+  "pix_key": "00020126580014br.gov.bcb.pix...",
+  "payment_id": "3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a",
+  "yuan_value": 100,
+  "amount_real": 83.33,
+  "quote": 1.2,
+  "expires_at": "2024-06-01T15:10:00Z",
+  "status_url": "/v1/payments/3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a"
+}
+```
+
+## Erros
+
+| Status HTTP | Código de Erro | Descrição |
+|-------------|------------|-------------|
+| `400` | `invalid_value` | `value` ausente, não é um número ou está fora do intervalo 1–10.000. |
+| `401` | `unauthorized` | Token Bearer ausente ou inválido. |
+| `403` | `developer_required` | Sua conta não tem acesso de desenvolvedor habilitado. |
+| `403` | `account_not_verified` | Sua conta não concluiu a verificação de identidade. |
+| `429` | `rate_limited` | Requisições de criação de pagamento em excesso. Volte e repita após o intervalo do `Retry-After`. |
+| `502` | `payment_provider_error` | O provedor PIX downstream retornou um erro. |
+| `503` | `maintenance` | A API está temporariamente indisponível para manutenção programada. |

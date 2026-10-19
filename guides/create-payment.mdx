@@ -11,7 +11,7 @@ description: "Learn how to use POST /v1/payments to create a PIX QR code for a y
     Before creating a payment, make sure your account meets the following requirements:
 
     - Your account is **verified** (KYC complete).
-    - The **developer flag** is enabled on your account.
+    - The **developer flag** is enabled on your account. It's free — request it by opening a ticket in our [Discord](https://discord.gg/VrpkYgKrqw).
     - You have a valid API key starting with `nox_`.
 
     You can generate and manage API keys from your noob-exchange dashboard.
@@ -21,7 +21,7 @@ description: "Learn how to use POST /v1/payments to create a PIX QR code for a y
     This step is optional but recommended. Fetching the current BRL/yuan quote lets you display an accurate BRL amount to your payer before presenting the QR code.
 
     ```bash
-    curl https://api.noobexchange.example.com/v1/quote \
+    curl https://api.noob.exchange/v1/quote \
       -H "Authorization: Bearer nox_your_api_key"
     ```
 
@@ -38,7 +38,7 @@ description: "Learn how to use POST /v1/payments to create a PIX QR code for a y
     Send a `POST` request with the yuan `value` you want to charge. The API returns a ready-to-use PIX QR code along with payment metadata.
 
     ```bash
-    curl -X POST https://api.noobexchange.example.com/v1/payments \
+    curl -X POST https://api.noob.exchange/v1/payments \
       -H "Authorization: Bearer nox_your_api_key" \
       -H "Content-Type: application/json" \
       -d '{"value": 100}'

@@ -11,7 +11,7 @@ Once you have a yuan balance from confirmed payments, use `POST /v1/withdrawals`
     Before requesting a withdrawal, verify you have sufficient yuan available.
 
     ```bash
-    curl https://api.noobexchange.example.com/v1/balance \
+    curl https://api.noob.exchange/v1/balance \
       -H "Authorization: Bearer nox_your_api_key"
     ```
 
@@ -30,7 +30,7 @@ Once you have a yuan balance from confirmed payments, use `POST /v1/withdrawals`
     Fetch the current BRL/yuan exchange rate to estimate how much BRL you will receive.
 
     ```bash
-    curl https://api.noobexchange.example.com/v1/quote \
+    curl https://api.noob.exchange/v1/quote \
       -H "Authorization: Bearer nox_your_api_key"
     ```
 
@@ -47,7 +47,7 @@ Once you have a yuan balance from confirmed payments, use `POST /v1/withdrawals`
     Submit the withdrawal with the yuan amount and your destination PIX key. Any PIX key type is accepted (CPF, CNPJ, phone, email, or random key).
 
     ```bash
-    curl -X POST https://api.noobexchange.example.com/v1/withdrawals \
+    curl -X POST https://api.noob.exchange/v1/withdrawals \
       -H "Authorization: Bearer nox_your_api_key" \
       -H "Content-Type: application/json" \
       -d '{"yuan_value": 50, "pix_key": "user@example.com"}'
@@ -80,7 +80,7 @@ Once you have a yuan balance from confirmed payments, use `POST /v1/withdrawals`
     After submitting, poll `GET /v1/withdrawals/{id}` or watch for a webhook notification to detect status changes.
 
     ```bash
-    curl https://api.noobexchange.example.com/v1/withdrawals/dbb54c30-7325-4805-a787-5a4ae98581e7 \
+    curl https://api.noob.exchange/v1/withdrawals/dbb54c30-7325-4805-a787-5a4ae98581e7 \
       -H "Authorization: Bearer nox_your_api_key"
     ```
 
@@ -97,7 +97,7 @@ Once you have a yuan balance from confirmed payments, use `POST /v1/withdrawals`
     Review your full withdrawal history with a single call.
 
     ```bash
-    curl https://api.noobexchange.example.com/v1/withdrawals \
+    curl https://api.noob.exchange/v1/withdrawals \
       -H "Authorization: Bearer nox_your_api_key"
     ```
 

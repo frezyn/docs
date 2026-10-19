@@ -1,0 +1,65 @@
+---
+title: "Acompanhar o Status do Pagamento PIX com a API noob-exchange"
+sidebarTitle: "Verificar Pagamento"
+description: "Consulte GET /v1/payments/{id} ou receba notificações por webhook para detectar a confirmação do pagamento e o crédito em yuan na sua integração noob-exchange."
+---
+
+Uma vez criado o pagamento, você pode acompanhar seu ciclo de vida via **polling** ou **webhooks**. Este guia cobre ambas as abordagens para que você escolha a que melhor se encaixa na sua integração — ou combine-as para máxima confiabilidade.
+
+## Consulta por Polling
+
+Chame `GET /v1/payments/{payment_id}` com sua chave de API para buscar o status mais recente de um pagamento.
+
+```bash
+curl https://api.noob.exchange/v1/payments/3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a \
+  -H "Authorization: Bearer nox_sua_chave_api"
+```
+
+**Resposta pendente**
+
+```json
+{
+  "payment_id": "3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a",
+  "status": "pending",
+  "yuan_value": 100,
+  "amount_real": 83.33,
+  "quote": 1.2,
+  "paid_at": null
+}
+```
+
+**Resposta paga**
+
+```json
+{
+  "payment_id": "3f2c8a10-7c5b-4d9e-a1f2-9b8c7d6e5f4a",
+  "status": "paid",
+  "yuan_value": 100,
+  "amount_real": 83.33,
+  "quote": 1.2,
+  "paid_at": "2026-09-24T23:05:12Z"
+}
+```
+
+Quando o `status` for `paid`, o campo `paid_at` contém o timestamp ISO 8601 da confirmação e o valor em yuan foi creditado no seu saldo.
+
+## Status do Pagamento
+
+| Status | Descrição |
+|---|---|
+| `pending` | A cobrança PIX foi criada e aguarda o pagamento do pagador. |
+| `paid` | O pagamento foi confirmado. O yuan foi creditado no seu saldo. |
+| `cancelled` | O pagamento foi cancelado manualmente antes de ser pago. |
+| `expired` | A janela de 10 minutos se passou sem pagamento. A cobrança não é mais válida. |
+
+## Notificações por Webhook
+
+O noob-exchange envia uma requisição `POST` ao endpoint de webhook que você configurou assim que um pagamento é confirmado. O payload do webhook espelha a resposta de polling paga e dispara o crédito em yuan no seu saldo automaticamente — sem necessidade de polling no fluxo ideal.
+
+O polling serve como fallback confiável: se o seu endpoint de webhook estiver temporariamente indisponível ou uma entrega atrasar, chamadas `GET` regulares garantem que você ainda detecte a confirmação.
+
+Configure a URL do seu webhook na seção **Developer** do dashboard do noob-exchange.
+
+<Tip>
+  Faça polling em um intervalo razoável — a cada **5 a 10 segundos** é um bom padrão enquanto o pagamento estiver pendente. Quando `expires_at` for atingido, pare o polling; o status nunca passará para `paid` após a expiração.
+</Tip>

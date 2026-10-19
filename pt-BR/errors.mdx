@@ -1,0 +1,49 @@
+---
+title: "Referência de Códigos de Erro e Status HTTP da API noob-exchange"
+sidebarTitle: "Erros"
+description: "Referência completa dos códigos de erro e status HTTP da API noob-exchange. Entenda o que cada código significa e como tratar cada erro na sua integração."
+---
+
+O noob-exchange retorna erros JSON estruturados em toda resposta não-2xx. Cada erro tem um `code` legível por máquina e uma `message` legível por humanos.
+
+```json
+{
+  "error": {
+    "code": "codigo_do_erro",
+    "message": "Descrição legível por humanos."
+  }
+}
+```
+
+## Códigos de Status HTTP
+
+| Status | Significado |
+|--------|-------------|
+| `400` | Requisição inválida (body inválido, valor fora do intervalo, chave PIX inválida) |
+| `401` | Chave de API ausente ou inválida |
+| `403` | Conta não autorizada (sinalizador de desenvolvedor ou verificação necessária) |
+| `404` | Recurso não encontrado |
+| `422` | Saldo insuficiente para o saque |
+| `429` | Limite de requisições excedido (rate limit) |
+| `500` | Erro interno do servidor |
+| `502` | Erro no gateway de pagamento (provedor upstream indisponível) |
+| `503` | Serviço indisponível (modo de manutenção) |
+
+## Códigos de Erro
+
+| Código | Descrição | Como corrigir |
+|------|-------------|------------|
+| `unauthorized` | Chave de API ausente ou inválida | Verifique se sua chave `nox_...` está correta e não foi revogada |
+| `developer_required` | Flag de developer não habilitada | Abra um ticket no nosso [Discord](https://discord.gg/VrpkYgKrqw) para solicitar a flag (gratuito) |
+| `account_not_verified` | A conta precisa estar verificada para criar pagamentos | Conclua a verificação da conta |
+| `invalid_value` | Valor fora do intervalo aceito | Use 1–10.000 yuan para pagamentos e 1–100.000 yuan para saques |
+| `insufficient_balance` | Yuan insuficiente para o saque | Consulte `GET /v1/balance` antes de sacar |
+| `rate_limited` | Requisições demais | Aguarde os segundos indicados em `Retry-After` |
+| `not_found` | Pagamento não encontrado nesta conta | Verifique se o `payment_id` pertence à sua conta |
+| `payment_provider_error` | O gateway rejeitou a cobrança | Repita a requisição |
+| `maintenance` | Serviço em manutenção | Tente novamente mais tarde |
+| `internal` | Erro interno do servidor | Repita a requisição; contate o suporte se persistir |
+
+<Note>
+  Sempre verifique tanto o status HTTP quanto o campo `error.code` para um tratamento de erros preciso.
+</Note>

@@ -1,0 +1,44 @@
+---
+title: "noob-exchange API — Plataforma de Pagamentos PIX para Yuan"
+sidebarTitle: "Introdução"
+description: "o noob-exchange permite que desenvolvedores recebam pagamentos PIX em BRL e recebam yuan. Crie cobranças, acompanhe o status e saque fundos via qualquer chave PIX."
+---
+
+O noob-exchange é uma API para desenvolvedores que conecta pagamentos PIX brasileiros à gestão de saldo em yuan. Você cria cobranças PIX programaticamente, os pagadores quitam em BRL, e sua conta é creditada com o valor equivalente em yuan pela cotação atual. Esse saldo em yuan pode ser sacado para qualquer chave PIX válida a qualquer momento.
+
+## Conceitos-chave
+
+**Pagamentos PIX** — Transações de pagamento instantâneas brasileiras iniciadas via QR code ou chave PIX. O noob-exchange gera essas cobranças em seu nome e monitora o status em tempo real.
+
+**Saldo em yuan** — Todo pagamento em BRL confirmado é convertido para yuan usando a cotação vigente e creditado no saldo da sua conta. Seu saldo se acumula entre pagamentos e é sempre denominado em yuan.
+
+**Cotação de câmbio** — A taxa BRL-yuan aplicada no momento em que o pagamento é criado. A cotação é travada para aquela cobrança e não flutua após a criação.
+
+**Saques (withdrawals)** — Uma solicitação para converter parte do seu saldo em yuan de volta para BRL e enviá-lo a uma chave PIX. Os saques podem ser direcionados a qualquer chave PIX válida: CPF, CNPJ, telefone, e-mail ou chave aleatória.
+
+## Requisitos
+
+- Uma conta noob-exchange verificada
+- Sinalizador de desenvolvedor (developer flag) habilitado (gratuito — solicite no Discord, veja abaixo)
+- Uma chave de API válida `nox_...` gerada no seu dashboard
+
+## URL base
+
+Todas as requisições de API devem ser direcionadas à URL base de produção:
+
+```text
+https://api.noob.exchange
+```
+
+<Note>
+  O sinalizador de desenvolvedor não é habilitado por padrão. Para obtê-lo, entre no nosso [Discord](https://discord.gg/VrpkYgKrqw) e abra um ticket solicitando a flag de developer. Não custa nada — a solicitação da flag e o uso da API são completamente gratuitos. Enquanto a flag não estiver habilitada, toda requisição retorna `403 developer_required`.
+</Note>
+
+<CardGroup cols={2}>
+  <Card title="Autenticação" icon="key" href="/pt-BR/authentication">
+    Aprenda a criar e usar sua chave de API.
+  </Card>
+  <Card title="Quickstart" icon="bolt" href="/pt-BR/quickstart">
+    Crie seu primeiro pagamento e saque seu saldo em minutos.
+  </Card>
+</CardGroup>

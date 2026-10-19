@@ -1,0 +1,60 @@
+---
+title: "Autenticação por Chave de API nas Requisições para o noob-exchange"
+sidebarTitle: "Autenticação"
+description: "O noob-exchange autentica cada requisição com uma chave de API Bearer. Aprenda a gerar sua chave nox_ e incluí-la em todas as chamadas de API."
+---
+
+O noob-exchange autentica cada requisição usando uma chave de API passada como token Bearer no header `Authorization`. Não há sessões, cookies ou fluxos OAuth — toda chamada deve conter uma chave válida.
+
+## Obtendo Sua Chave de API
+
+1. Acesse `/settings/api-keys` no dashboard do noob-exchange.
+2. Clique em **Create new key**, dê um nome a ela e confirme.
+3. Copie a chave imediatamente — ela é exibida apenas uma vez.
+
+<Warning>
+  Sua chave de API é exibida uma única vez no momento da criação. Se você a perder, precisará revogá-la e gerar uma nova. Guarde-a em um gerenciador de segredos ou variável de ambiente — nunca a versione no controle de código-fonte.
+</Warning>
+
+Todas as chaves de API seguem o formato:
+
+```text
+nox_...
+```
+
+## Enviando Sua Chave de API
+
+Inclua sua chave no header `Authorization` em todas as requisições:
+
+```http
+Authorization: Bearer nox_sua_chave_aqui
+```
+
+**Exemplo — consultar seu saldo atual em yuan:**
+
+```bash
+curl https://api.noob.exchange/v1/balance \
+  -H "Authorization: Bearer nox_sua_chave_aqui"
+```
+
+## Sinalizador de Desenvolvedor
+
+O sinalizador de desenvolvedor controla o acesso a toda a API. Ele vem desabilitado por padrão e precisa ser habilitado na sua conta. Para obtê-lo, entre no nosso [Discord](https://discord.gg/VrpkYgKrqw) e abra um ticket solicitando a flag de developer. Enquanto ele não estiver habilitado, toda requisição — independentemente da validade da chave — retorna:
+
+```json
+{
+  "error": "developer_required"
+}
+```
+
+<Note>
+  Não há custo para solicitar a flag de developer nem para usar a API. Abra um ticket no [Discord](https://discord.gg/VrpkYgKrqw) para que possamos habilitar a flag na sua conta.
+</Note>
+
+## Erros de Autenticação
+
+| Código de erro | Status HTTP | Causa |
+|---|---|---|
+| `unauthorized` | `401` | A chave de API está ausente, malformada ou foi revogada. |
+| `developer_required` | `403` | O sinalizador de desenvolvedor não foi habilitado na sua conta. |
+| `account_not_verified` | `403` | Sua conta não concluiu o processo de verificação. |
